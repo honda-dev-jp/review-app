@@ -1,6 +1,8 @@
 # 既存の設定：HTTPSへの転送（これは消さずに残します）
 RewriteEngine On
 RewriteCond %{HTTPS} off
+# localhost（Docker等のローカル環境）はHTTPSリダイレクト対象外
+RewriteCond %{HTTP_HOST} !^localhost [NC]
 RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
 
 # ----------------------------------------------------------------------
