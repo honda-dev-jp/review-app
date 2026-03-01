@@ -23,3 +23,6 @@ Options -Indexes
     Order allow,deny
     Deny from all
 </FilesMatch>
+
+# 4. .gitディレクトリへのアクセスを拒否（共有ホスティング互換）
+RedirectMatch 404 /\.git
