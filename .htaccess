@@ -26,3 +26,8 @@ Options -Indexes
 
 # 4. .gitディレクトリへのアクセスを拒否（共有ホスティング互換）
 RedirectMatch 404 /\.git
+
+# 5. 不正スキャン元IPアドレスをアクセス拒否
+deny from 4.241.228.159
+deny from 20.215.69.209
+deny from 104.46.226.22
