@@ -184,6 +184,18 @@ footer {
   text-decoration: underline;
 }
 
+/* =========================================================
+  06-a. Qiitaリンク専用のスタイル
+========================================================= */
+.qiita-link {
+    color: #55c500;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.qiita-link:hover {
+    text-decoration: underline;
+}
 
 /* =========================================================
   07. Menu（マイページ等のメニューボタン）
