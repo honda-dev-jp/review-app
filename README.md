@@ -10,11 +10,19 @@
 https://portfolio.honda-dev.com/
 
 ## 使用技術
-- PHP 7.4
+
+### 本番環境
+- PHP 8.4
 - MariaDB / MySQL
 - HTML / CSS
 - JavaScript
-- XServer（本番環境）
+- XServer
+
+### 開発環境
+- XAMPP（PHP 7.4）
+- Docker / Docker Compose（LAMP構成）
+- MySQL 8.4
+- Git / GitHub
 
 ## 主な機能
 - 会員登録 / ログイン機能
@@ -63,9 +71,18 @@ users・items・reviews を中心とした正規化設計。
 
 ## 更新履歴
 
+### 2026/03/05
+- feat(footer): Qiitaリンク追加・技術スタック更新（Git / GitHub / Docker）
+- docs: README使用技術を本番/開発環境で分離・関連リンクセクション追加
+
 ### 2026/02/24
 - fix/sec: 返信バリデーション関数の誤りを修正・XSSリスク対応・basename()追加
 - refactor: profile_edit_check のUPDATE文をリファクタリング
 - chore: コード品質の細かい修正・相対パスを絶対パスに統一
 - style: style.cssのリファクタリングとCSS分割・未使用ファイル削除
 - sec: images/.htaccessにno_image除外ルールを追加
+
+## 関連リンク
+
+- 技術記事（Docker開発環境構築）: https://qiita.com/honda-dev-jp
+- 開発ログ / 学習記録: https://x.com/honda_dev
