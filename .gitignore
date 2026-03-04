@@ -8,3 +8,14 @@
 
 # テストフォルダを隠す
 /test
+
+# 画像ファイルは除外（ディレクトリのみ管理対象）
+/images/thumbnail/*
+!/images/thumbnail/.gitkeep
+/images/icon/*
+!/images/icon/.gitkeep
+/images/no_image/*
+!/images/no_image/.gitkeep
+
+# Windowsシステムファイル
+Thumbs.db
