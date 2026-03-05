@@ -84,5 +84,5 @@ users・items・reviews を中心とした正規化設計。
 
 ## 関連リンク
 
-- 技術記事（Docker開発環境構築）: https://qiita.com/honda-dev-jp
+- 技術記事（Docker開発環境構築）: https://qiita.com/honda-dev-jp/items/e1dda4d4b6eab8f95d8a
 - 開発ログ / 学習記録: https://x.com/honda_dev
