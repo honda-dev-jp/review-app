@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+
+  <!-- 文字コード -->
+  <meta charset="UTF-8">
+
+  <!-- レスポンシブ設定（スマホ対応） -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>管理画面</title>
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- 管理画面専用CSS -->
+  <link rel="stylesheet" href="admin.css">
+
+</head>
+
+
+<body>
+
+
+<!-- =====================================================
+  ヘッダー
+===================================================== -->
+<header class="bg-dark text-white py-3">
+
+  <div class="container-fluid d-flex justify-content-between align-items-center">
+
+    <!-- 管理画面タイトル -->
+    <h1 class="h4 mb-0">管理画面</h1>
+
+    <!-- ログインユーザー表示 -->
+    <div class="small">
+      ログイン中：テスト
+    </div>
+
+  </div>
+
+</header>
+
+
+
+<!-- =====================================================
+  メインレイアウト
+===================================================== -->
+<main class="container-fluid">
+
+  <div class="row">
+
+
+    <!-- =====================================================
+      サイドバー
+    ===================================================== -->
+    <nav class="col-md-2 border-end py-3 bg-light admin-sidebar">
+
+      <!-- 管理メニュー -->
+      <ul class="nav flex-column">
+
+        <li class="nav-item mb-2">
+          <a class="nav-link active" href="#">
+            作品一覧
+          </a>
+        </li>
+
+      </ul>
+
+      <hr>
+
+      <!-- ログアウト -->
+      <form action="logout.php" method="post">
+
+        <button type="submit" class="btn btn-outline-secondary w-100">
+          ログアウト
+        </button>
+
+      </form>
+
+    </nav>
+
+
+
+    <!-- =====================================================
+      コンテンツエリア
+    ===================================================== -->
+    <div class="col-md-10 py-3">
+
+
+      <!-- =====================================================
+        ページタイトル＋新規追加
+      ===================================================== -->
+      <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-2 mb-3">
+
+        <h2 class="h4 mb-0">
+          作品一覧
+        </h2>
+
+        <!-- 新規追加ボタン -->
+        <a href="item_add.php" class="btn btn-primary btn-sm">
+          新規追加
+        </a>
+
+      </div>
+
+
+
+      <!-- =====================================================
+        作品一覧テーブル
+      ===================================================== -->
+      <div class="table-responsive">
+
+        <table class="table table-striped table-hover">
+
+          <!-- テーブルヘッダー -->
+          <thead>
+
+            <tr>
+
+              <th class="col-id">
+                作品ID
+              </th>
+
+              <th class="col-thumb">
+                サムネイル
+              </th>
+
+              <th class="col-title">
+                タイトル
+              </th>
+
+              <th class="col-rating">
+                評価平均点
+              </th>
+
+              <th class="col-action text-end">
+                操作
+              </th>
+
+            </tr>
+
+          </thead>
+
+
+
+          <!-- テーブルデータ -->
+          <tbody>
+
+
+            <!-- ===== 作品1 ===== -->
+            <tr>
+
+              <td>
+                101
+              </td>
+
+              <!-- サムネイル -->
+              <td>
+                <img src="../../images/thumbnail/item01.png"
+                     alt="鋼鉄の境界線"
+                     class="img-thumbnail item-thumb"
+                     width="45" height="50"
+                >
+              </td>
+
+
+              <!-- タイトル（クリックで詳細モーダル） -->
+              <td class="item-title-cell">
+
+                <button
+                  type="button"
+                  class="btn btn-link p-0 text-start item-title-link"
+
+                  data-bs-toggle="modal"
+                  data-bs-target="#detailModal"
+
+                  data-item-title="鋼鉄の境界線"
+                  data-item-image="images/item01.jpg"
+                  data-item-rating="4.2"
+                  data-item-description="近未来都市を舞台に巨大企業と戦う主人公の物語。">
+
+                  鋼鉄の境界線
+
+                </button>
+
+              </td>
+
+
+              <!-- 評価 -->
+              <td class="col-rating">
+
+                <div class="rating-inline">
+
+                  <span class="rating-score">
+                    ★4.2
+                  </span>
+
+                </div>
+
+              </td>
+
+
+              <!-- 操作 -->
+              <td class="text-end">
+
+                <!-- 編集 -->
+                <a href="item_edit.php?id=101"
+                   class="btn btn-outline-primary btn-sm">
+                  編集
+                </a>
+
+                <!-- 削除 -->
+                <button
+                  type="button"
+                  class="btn btn-outline-danger btn-sm"
+
+                  data-bs-toggle="modal"
+                  data-bs-target="#deleteModal"
+
+                  data-item-id="101"
+                  data-item-title="鋼鉄の境界線">
+
+                  削除
+
+                </button>
+
+              </td>
+
+            </tr>
+
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+
+    </div>
+
+  </div>
+
+</main>
+
+
+
+<!-- =====================================================
+  フッター
+===================================================== -->
+<footer class="border-top mt-4 py-3">
+
+  <div class="container small text-muted">
+
+    <p class="mb-1">
+      © 2026 仮想映画レビューアプリ
+    </p>
+
+    <p class="mb-1">
+      このアプリは学習・ポートフォリオ目的で作成された架空のアプリです。
+    </p>
+
+    <p class="mb-1">
+      制作過程を発信中：
+      <a href="#">GitHub</a>｜
+      <a href="#">X (旧Twitter)</a>｜
+      <a href="#">Qiita</a>
+    </p>
+
+    <p class="mb-0">
+      技術スタック:
+      PHP / MySQL / JavaScript / HTML / CSS / Git / GitHub / Docker
+    </p>
+
+  </div>
+
+</footer>
+
+
+
+<!-- =====================================================
+  削除確認モーダル
+===================================================== -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+
+  <div class="modal-dialog">
+
+    <div class="modal-content">
+
+
+      <div class="modal-header">
+
+        <h5 class="modal-title">
+          削除確認
+        </h5>
+
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="modal">
+        </button>
+
+      </div>
+
+
+      <div class="modal-body">
+
+        <p>
+          「<span id="modalItemTitle"></span>」を削除します。
+        </p>
+
+      </div>
+
+
+      <div class="modal-footer">
+
+        <button class="btn btn-secondary"
+                data-bs-dismiss="modal">
+          キャンセル
+        </button>
+
+        <form action="item_delete.php" method="post">
+
+          <input type="hidden"
+                 name="id"
+                 id="modalItemId">
+
+          <button class="btn btn-danger">
+            削除する
+          </button>
+
+        </form>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+
+<!-- =====================================================
+  作品詳細モーダル
+===================================================== -->
+<div class="modal fade" id="detailModal" tabindex="-1">
+
+  <div class="modal-dialog modal-lg">
+
+    <div class="modal-content">
+
+      <div class="modal-header">
+
+        <h5 class="modal-title">
+          作品詳細
+        </h5>
+
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="modal">
+        </button>
+
+      </div>
+
+
+      <div class="modal-body">
+
+        <div class="row g-3">
+
+          <!-- 画像 -->
+          <div class="col-md-4">
+
+            <img id="detailItemImage"
+                 class="img-fluid img-thumbnail">
+
+          </div>
+
+          <!-- 詳細 -->
+          <div class="col-md-8">
+
+            <h3 id="detailItemTitle" class="h5"></h3>
+
+            <p>
+              評価平均点：
+              <span id="detailItemRating"></span>
+            </p>
+
+            <p id="detailItemDescription"></p>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+
+<!-- =====================================================
+  Bootstrap JS
+===================================================== -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+
+
+<!-- =====================================================
+  モーダル制御スクリプト
+===================================================== -->
+<script>
+
+  /* 削除モーダル */
+  const deleteModal = document.getElementById('deleteModal');
+
+  deleteModal.addEventListener('show.bs.modal', function(event){
+
+    const button = event.relatedTarget;
+
+    const itemId = button.getAttribute('data-item-id');
+    const itemTitle = button.getAttribute('data-item-title');
+
+    document.getElementById('modalItemId').value = itemId;
+    document.getElementById('modalItemTitle').textContent = itemTitle;
+
+  });
+
+
+  /* 詳細モーダル */
+  const detailModal = document.getElementById('detailModal');
+
+  detailModal.addEventListener('show.bs.modal', function(event){
+
+    const button = event.relatedTarget;
+
+    document.getElementById('detailItemTitle').textContent =
+      button.getAttribute('data-item-title');
+
+    document.getElementById('detailItemImage').src =
+      button.getAttribute('data-item-image');
+
+    document.getElementById('detailItemRating').textContent =
+      button.getAttribute('data-item-rating');
+
+    document.getElementById('detailItemDescription').textContent =
+      button.getAttribute('data-item-description');
+
+  });
+
+</script>
+
+
+</body>
+</html>
