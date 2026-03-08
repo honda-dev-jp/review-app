@@ -13,11 +13,6 @@
     </li>
     <li class="nav-item mb-2">
       <a class="nav-link" href="#">
-        新規作品追加
-      </a>
-    </li>
-    <li class="nav-item mb-2">
-      <a class="nav-link" href="#">
         マイページに戻る
       </a>
     </li>
