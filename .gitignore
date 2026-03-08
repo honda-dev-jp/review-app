@@ -4,7 +4,7 @@
 /.vscode
 
 # 管理フォルダを隠す
-/admin
+# /admin
 
 # テストフォルダを隠す
 /test
