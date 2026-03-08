@@ -55,7 +55,7 @@
     <!-- =====================================================
       サイドバー
     ===================================================== -->
-    <nav class="col-md-2 border-end py-3 bg-light admin-sidebar">
+    <nav class="col-md-2 border-end py-3 bg-light admin-sidebar" aria-label="管理メニュー">
 
       <!-- 管理メニュー -->
       <ul class="nav flex-column">
@@ -246,30 +246,31 @@
       </div>
 
 
-    </div>
+      <!-- =====================================================
+        ページネーション（② col-md-10 内に移動）
+      ===================================================== -->
+      <nav aria-label="ページネーション"><!-- ⑥ aria-label 追加 -->
+        <ul class="pagination justify-content-center">
 
-  </div>
+          <li class="page-item">
+            <a class="page-link" href="?page=1">1</a>
+          </li>
 
-  <!-- =====================================================
-    ページネーション
-  ===================================================== -->
-  <nav>
-    <ul class="pagination justify-content-center">
+          <li class="page-item">
+            <a class="page-link" href="?page=2">2</a>
+          </li>
 
-      <li class="page-item">
-        <a class="page-link" href="?page=1">1</a>
-      </li>
+          <li class="page-item">
+            <a class="page-link" href="?page=3">3</a>
+          </li>
 
-      <li class="page-item">
-        <a class="page-link" href="?page=2">2</a>
-      </li>
+        </ul>
+      </nav>
 
-      <li class="page-item">
-        <a class="page-link" href="?page=3">3</a>
-      </li>
 
-    </ul>
-  </nav>
+    </div><!-- /.col-md-10 -->
+
+  </div><!-- /.row -->
 
 </main>
 
@@ -311,7 +312,8 @@
 <!-- =====================================================
   削除確認モーダル
 ===================================================== -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
+<!-- ③ aria-labelledby 追加 -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel">
 
   <div class="modal-dialog">
 
@@ -320,13 +322,16 @@
 
       <div class="modal-header">
 
-        <h5 class="modal-title">
+        <!-- ③ id 追加 -->
+        <h5 class="modal-title" id="deleteModalLabel">
           削除確認
         </h5>
 
+        <!-- ④ aria-label 追加 -->
         <button type="button"
                 class="btn-close"
-                data-bs-dismiss="modal">
+                data-bs-dismiss="modal"
+                aria-label="閉じる">
         </button>
 
       </div>
@@ -354,6 +359,9 @@
                  name="id"
                  id="modalItemId">
 
+          <!-- CSRFトークン：PHP実装時に embedCSRFToken() を追加 -->
+          <!-- <?php embedCSRFToken(); ?> -->
+
           <button class="btn btn-danger">
             削除する
           </button>
@@ -371,9 +379,10 @@
 
 
 <!-- =====================================================
-  作品詳細モーダル
-========================d============================= -->
-<div class="modal fade" id="detailModal" tabindex="-1">
+  作品詳細モーダル（⑦ コメントのタイポ修正）
+===================================================== -->
+<!-- ③ aria-labelledby 追加 -->
+<div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel">
 
   <div class="modal-dialog modal-lg">
 
@@ -381,13 +390,16 @@
 
       <div class="modal-header">
 
-        <h5 class="modal-title">
+        <!-- ③ id 追加 -->
+        <h5 class="modal-title" id="detailModalLabel">
           作品詳細
         </h5>
 
+        <!-- ④ aria-label 追加 -->
         <button type="button"
                 class="btn-close"
-                data-bs-dismiss="modal">
+                data-bs-dismiss="modal"
+                aria-label="閉じる">
         </button>
 
       </div>
@@ -400,8 +412,10 @@
           <!-- 画像 -->
           <div class="col-md-4">
 
+            <!-- ⑤ alt 属性追加（JS で動的にセット） -->
             <img id="detailItemImage"
-                 class="img-fluid img-thumbnail">
+                 class="img-fluid img-thumbnail"
+                 alt="">
 
           </div>
 
@@ -469,8 +483,10 @@
     document.getElementById('detailItemTitle').textContent =
       button.getAttribute('data-item-title');
 
-    document.getElementById('detailItemImage').src =
-      button.getAttribute('data-item-image');
+    /* ⑤ alt も動的にセット */
+    const img = document.getElementById('detailItemImage');
+    img.src = button.getAttribute('data-item-image');
+    img.alt = button.getAttribute('data-item-title');
 
     document.getElementById('detailItemRating').textContent =
       button.getAttribute('data-item-rating');
