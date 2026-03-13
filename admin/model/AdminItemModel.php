@@ -60,6 +60,7 @@ class AdminItemModel
      * 	item_id: int,
      * 	title: string,
      * 	image: string|null,
+     *  avg_rating: float|null,
      * 	rating_count: int
      * }>
      */
