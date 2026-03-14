@@ -4,7 +4,7 @@ declare(strict_types=1);
 // 1. 環境設定の読み込み（最優先：他の全てが依存する）
 require_once __DIR__ . '/../config/env.php';
 
-// 1.定数定義（env.phpに依存する為2番目）
+// 2.定数定義（env.phpに依存する為2番目）
 require_once __DIR__ . '/lib/utils.php';
 define('ADMIN_BASE_PATH', getBaseUrl());
 
