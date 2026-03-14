@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Admin\Models;
@@ -7,23 +8,23 @@ use PDO;
 
 /**
  * 作品（items）に関するデータアクセスを担当するモデル。
- * 
+ *
  * 設計方針：
  * - コンストラクタインジェクションでPDOを受け取る
  * - インスタンスメソッドで統一（static は使わない）
  * - DB操作のみを責務とし、セッション・リダイレクト等を持たない
  * - 例外は呼び出し元（Controller）に委譲する
- * 
+ *
  * @package Admin\Models
  */
 class AdminItemModel
 {
     private PDO $pdo;
 
-	public function __construct(PDO $pdo)
-	{
-		$this->pdo = $pdo;
-	}
+    public function __construct(PDO $pdo)
+    {
+        $this->pdo = $pdo;
+    }
 
 
     // =========================================================
@@ -32,15 +33,15 @@ class AdminItemModel
 
     /**
      * 作品の総件数を返す。
-     * 
+     *
      * ページネーションの totalPages 計算に使用する。
-     * 
+     *
      * @return int
      */
     public function countAll(): int
     {
         $stmt = $this->pdo->query('SELECT COUNT(*) FROM items');
-        return (int)$stmt->fetchColumn();
+        return (int) $stmt->fetchColumn();
     }
 
     // =========================================================
@@ -49,11 +50,11 @@ class AdminItemModel
 
     /**
      * 作品一覧をページネーション付きで取得する
-     * 
+     *
      * - reviews テーブルと LEFT JOIN して avg_rating / rating_count を付与
      * - デフォルトは item_id DESC (追加日が新しい順)
      *   ＊ユーザー側（avg_rating 順）とは意図的に分けている
-     * 
+     *
      * @param int $limit  1ページあたりの件数
      * @param int $offset 取得開始位置
      * @return array<int, array{
@@ -81,7 +82,7 @@ class AdminItemModel
         ';
 
         $stmt = $this->pdo->prepare($sql);
-        $stmt->bindValue(':limit',	$limit,	PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
         $stmt->execute();
 
@@ -91,11 +92,11 @@ class AdminItemModel
         $result = [];
         foreach ($rows as $row) {
             $result[] = [
-                'item_id'       =>(int) $row['item_id'],
-                'title'         =>(string) $row['title'],
+                'item_id'       => (int) $row['item_id'],
+                'title'         => (string) $row['title'],
                 'image'         => isset($row['image']) ? (string) $row['image'] : null,
                 'avg_rating'    => $row['avg_rating'] !== null ? (float) $row['avg_rating'] : null,
-                'rating_count'  => (int) $row['rating_count'], 
+                'rating_count'  => (int) $row['rating_count'],
             ];
         }
 
@@ -108,10 +109,10 @@ class AdminItemModel
 
     /**
      * item_id を指定して作品を1件取得する。
-     * 
+     *
      * 存在しない場合は null を返す（例外は投げない）。
      * 呼び出し元で null チェックを行う。
-     * 
+     *
      * @param int $itemId
      * @return array{
      * 		item_id: int,

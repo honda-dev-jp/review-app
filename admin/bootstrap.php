@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 // 1. 環境設定の読み込み（最優先：他の全てが依存する）
@@ -24,4 +25,3 @@ require_once __DIR__ . '/lib/security/csrf.php';
 // 6.ガードの読み込み
 require_once __DIR__ . '/guards/redirect_guard.php';
 require_once __DIR__ . '/guards/request_guard.php';
-
