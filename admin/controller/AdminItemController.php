@@ -6,20 +6,20 @@ namespace Admin\Controller;
 
 use AdminItemModel;
 
-require_once __DIR__ . '/../lib/exception_handler.php';
-
 /**
  * 管理画面：作品管理コントローラー
  *
  * 責務：
  * - 作品一覧のページネーション計算
  * - Model からのデータ取得と View への受け渡し
- * - DB例外の補足と exception_handler への委譲
  *
  * 設計方針：
  * - インスタンスメソッドのみ使用（static禁止）
  * - View には変数のみ渡す（DBアクセス禁止）
- * - PDOException は Controller で catch → handleDbError() に委譲
+ * - 想定外例外（PDOException / Throwable）は bootstrap.php の
+ *   グローバルハンドラ（set_exception_handler）に委譲する
+ * - Controller では try/catch を書かない（GET表示系）
+ * - POST処理（add/edit/delete）では想定内エラーのみ Controller で扱う
  */
 class AdminItemController
 {
@@ -42,13 +42,14 @@ class AdminItemController
      * - GETパラメータ `page` からページ番号を取得・補正
      * - Model から総件数と一覧データを取得
      * - View（view/item/list.php）に変数を渡して描画
+     * - 例外は握りつぶさず bootstrap.php のグローバルハンドラへ委譲
      *
      * @return void
      */
     public function index(): void
     {
         // 現在のページ番号を取得（未指定・1未満は1に補正）
-        $page = max(1, (int)($_GET['page'] ?? 1));
+        $page = max(1, (int) ($_GET['page'] ?? 1));
 
         // 1ページに表示する件数
         $perPage = 10;
@@ -56,20 +57,14 @@ class AdminItemController
         // 取得開始位置を計算
         $offset = ($page - 1) * $perPage;
 
-        try {
-            // 作品の総件数を取得
-            $total = $this->model->countAll();
+        // 作品の総件数を取得
+        $total = $this->model->countAll();
 
-            // 総ページ数を計算（最低1ページは確保）
-            $totalPages = max(1, (int)ceil($total / $perPage));
+        // 総ページ数を計算（最低1ページは確保）
+        $totalPages = max(1, (int) ceil($total / $perPage));
 
-            // カレントページの作品一覧を取得
-            $items = $this->model->getAll($perPage, $offset);
-
-        } catch (\PDOException $e) {
-            // DBエラー発生時は共通ハンドラに委譲してリダイレクト
-            handleDbError($e, '/admin/item_list.php');
-        }
+        // カレントページの作品一覧を取得
+        $items = $this->model->getAll($perPage, $offset);
 
         // View を呼び出す（$items, $page, $totalPages を渡す）
         require __DIR__ . '/../view/item/list.php';
