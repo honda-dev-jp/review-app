@@ -25,3 +25,6 @@ require_once __DIR__ . '/lib/security/csrf.php';
 // 6.ガードの読み込み
 require_once __DIR__ . '/guards/redirect_guard.php';
 require_once __DIR__ . '/guards/request_guard.php';
+
+// 7.例外処理
+set_exception_handler('handle_exception');
