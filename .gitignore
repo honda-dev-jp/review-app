@@ -18,7 +18,7 @@
 !/images/no_image/.gitkeep
 
 # Windowsシステムファイル
-Thumbs.db.php-cs-fixer.php
+Thumbs.db
 
 # PHP CS Fixer（コード整形ツール）の設定・キャッシュファイル
 .php-cs-fixer.dist.php
