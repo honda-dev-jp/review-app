@@ -20,7 +20,6 @@ startSecureSession();
 // 5. 共通ライブラリ
 require_once __DIR__ . '/lib/db.php';
 require_once __DIR__ . '/lib/sanitize.php';
-require_once __DIR__ . '/lib/flash.php';
 
 // 6. セキュリティ
 require_once __DIR__ . '/lib/security/csrf.php';
