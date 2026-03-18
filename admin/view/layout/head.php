@@ -14,6 +14,6 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
   <!-- 管理画面専用CSS -->
-  <link rel="stylesheet" href="css/admin.css">
+  <link rel="stylesheet" href="<?= ADMIN_BASE_PATH ?>/admin/css/admin.css">
 
 </head>

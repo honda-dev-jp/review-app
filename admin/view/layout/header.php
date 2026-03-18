@@ -10,7 +10,7 @@
 
     <!-- ログインユーザー表示 -->
     <div class="small">
-      ログイン中：テスト
+      ログイン中：<?= sanitize($_SESSION['name'] ?? '') ?>
     </div>
 
   </div>
