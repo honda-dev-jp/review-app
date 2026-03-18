@@ -1,7 +1,6 @@
 <?php
 
-require_once __DIR__ . '/../../config/env.php'; // 環境設定ファイル
-require_once __DIR__ . '/../../config/database.php'; // データベース設定ファイル
+declare(strict_types=1);
 
 /**
  * 汎用DB接続関数
