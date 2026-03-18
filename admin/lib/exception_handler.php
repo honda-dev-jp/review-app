@@ -102,5 +102,6 @@ function handleAdminError(
         $contextLabel,
     ));
 
-    redirectWithError('操作に失敗しました。', $redirectTo);
+    $messages = require __DIR__ . '/../lang/messages.php';
+    redirectWithError($messages['common']['operation_failed'], $redirectTo);
 }

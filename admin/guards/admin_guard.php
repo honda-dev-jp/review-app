@@ -31,7 +31,8 @@ function checkAdmin(): void
 {
     // 管理者以外はアクセス不可
     if ($_SESSION['role'] !== 'admin') {
-        $_SESSION['error'][] = "管理者専用ページにアクセスできません。";
+        $messages = require __DIR__ . '/../lang/messages.php';
+        $_SESSION['error'][] = $messages['common']['admin_only'];
 
         // ベースURLを取得して、リダイレクト先のURLを組み立て
         $baseUrl = getBaseUrl();

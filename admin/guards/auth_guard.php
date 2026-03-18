@@ -25,7 +25,8 @@ function checkLogin(): void
 {
     // ログインしていない場合は、エラーメッセージを格納してログインページにリダイレクト
     if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
-        $_SESSION['error'][] = 'ログインが必要です。';
+        $messages = require __DIR__ . '/../lang/messages.php';
+        $_SESSION['error'][] = $messages['common']['login_required'];
 
         // ベースURLを取得して、リダイレクト先のURLを組み立て
         $baseUrl = getBaseUrl();
