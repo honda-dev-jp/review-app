@@ -26,25 +26,25 @@ generateCSRFToken();
 $icon = null;
 
 try {
-	$pdo = getPdo();
-	$stmt = $pdo->prepare('SELECT image FROM users WHERE user_id = ?');
-	$stmt->execute([(int)$_SESSION['user_id']]);
-	$row = $stmt->fetch(PDO::FETCH_ASSOC);
-	$icon = $row['image'] ?? null;
+    $pdo = getPdo();
+    $stmt = $pdo->prepare('SELECT image FROM users WHERE user_id = ?');
+    $stmt->execute([(int) $_SESSION['user_id']]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    $icon = $row['image'] ?? null;
 
-	// 明示的に切断したい場合は残す（なくてもOK）
-	$pdo = null;
+    // 明示的に切断したい場合は残す（なくてもOK）
+    $pdo = null;
 
 } catch (Throwable $e) {
-	// ここは「補助情報取得」なので、リダイレクトせずログだけ出して継続する
-	error_log(sprintf(
-			'[%s] %s in %s:%d',
-			get_class($e),
-			$e->getMessage(),
-			$e->getFile(),
-			$e->getLine()
-	));
-	$icon = null;
+    // ここは「補助情報取得」なので、リダイレクトせずログだけ出して継続する
+    error_log(sprintf(
+        '[%s] %s in %s:%d',
+        get_class($e),
+        $e->getMessage(),
+        $e->getFile(),
+        $e->getLine(),
+    ));
+    $icon = null;
 }
 ?>
 <!DOCTYPE html>
@@ -70,7 +70,7 @@ try {
 	<!-- プロフィールアイコン・ユーザー名表示 -->
 	<div class="mypage-user">
 		<?php if (!empty($icon)): ?>
-      <?php $iconSafe = basename((string)$icon); ?>
+      <?php $iconSafe = basename((string) $icon); ?>
 			<img src="<?php echo getBaseUrl(); ?>/images/icon/<?= sanitize($iconSafe) ?>" alt="プロフィールアイコン">
 			<span class="mypage-username"><?= sanitize($_SESSION['name']) ?></span>
 		<?php else: ?>
@@ -85,7 +85,7 @@ try {
 		<li><a href="<?= getBaseUrl() ?>/items/item_list.php" class="menu-btn">作品一覧</a></li>
 
 		<?php if (($_SESSION['role'] ?? '') === 'admin'): ?>
-		<li><a href="<?= getBaseUrl() ?>/admin/item_add.php" class="menu-btn">作品紹介ページ追加入力</a></li>
+		<li><a href="<?= getBaseUrl() ?>/admin/item_list.php" class="menu-btn">管理者作品一覧画面</a></li>
 		<?php endif; ?>
 	</ul>
 
