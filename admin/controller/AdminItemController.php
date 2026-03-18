@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Admin\Controller;
 
-use AdminItemModel;
+use Admin\Models\AdminItemModel;
 
 /**
  * 管理画面：作品管理コントローラー
@@ -54,14 +54,17 @@ class AdminItemController
         // 1ページに表示する件数
         $perPage = 10;
 
-        // 取得開始位置を計算
-        $offset = ($page - 1) * $perPage;
-
         // 作品の総件数を取得
         $total = $this->model->countAll();
 
         // 総ページ数を計算（最低1ページは確保）
         $totalPages = max(1, (int) ceil($total / $perPage));
+
+        // GETパラメータで指定されたpageが総ページ数を超えた場合、最終ページに補正する
+        $page = min($page, $totalPages);
+
+        // 取得開始位置を計算
+        $offset = ($page - 1) * $perPage;
 
         // カレントページの作品一覧を取得
         $items = $this->model->getAll($perPage, $offset);
