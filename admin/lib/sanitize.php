@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * サニタイズ用関数
  *

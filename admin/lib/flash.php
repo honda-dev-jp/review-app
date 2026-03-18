@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // flash.php 内で sanitize を読み込み、呼び出し元の読み込み忘れを防ぐ
 require_once __DIR__ . '/sanitize.php';
 
