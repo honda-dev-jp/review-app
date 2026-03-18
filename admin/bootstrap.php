@@ -28,4 +28,5 @@ require_once __DIR__ . '/lib/security/csrf.php';
 // 7. ガード
 require_once __DIR__ . '/guards/redirect_guard.php';
 require_once __DIR__ . '/guards/request_guard.php';
-// require_once __DIR__ . '/guards/admin_auth_check.php'; // 必要なら有効化
+require_once __DIR__ . '/guards/auth_guard.php';
+require_once __DIR__ . '/guards/admin_guard.php';
