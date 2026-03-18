@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../../lib/utils.php';
+require_once __DIR__ . '/../lib/utils.php';
 
 /**
  * リダイレクト系ガード（Web層）
