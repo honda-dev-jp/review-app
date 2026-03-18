@@ -5,14 +5,12 @@ declare(strict_types=1);
 /**
  * 管理者権限を確認する認可ガード関数。
  *
- * セッションが未開始の場合は session_start() を実行し、
  * セッションに設定されたユーザー権限（role）が 'admin' であるかを確認する。
  * 管理者以外のユーザーがアクセスした場合は、
  * エラーメッセージをセッションに格納した上でトップページへリダイレクトし、
  * 処理を中断する。
  *
  * 【仕様】
- * - session_status() によりセッション開始状態を判定
  * - $_SESSION['role'] が 'admin' の場合のみ通過
  * - 管理者以外の場合はリダイレクトして exit
  *
@@ -31,11 +29,6 @@ require_once __DIR__ . '/../lib/utils.php'; // 共通化したutils.phpをイン
 
 function checkAdmin(): void
 {
-    // セッション未開始なら開始（事故防止）
-    if (session_status() !== PHP_SESSION_ACTIVE) {
-        session_start();
-    }
-
     // 管理者以外はアクセス不可
     if ($_SESSION['role'] !== 'admin') {
         $_SESSION['error'][] = "管理者専用ページにアクセスできません。";
