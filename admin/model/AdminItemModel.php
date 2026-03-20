@@ -61,6 +61,7 @@ class AdminItemModel
      * 	item_id: int,
      * 	title: string,
      * 	image: string|null,
+     *  description: string|null,
      *  avg_rating: float|null,
      * 	rating_count: int
      * }>
@@ -72,6 +73,7 @@ class AdminItemModel
                 i.item_id,
                 i.title,
                 i.image,
+                i.description,
                 AVG(r.rating)	AS avg_rating,
                 COUNT(r.rating)	AS rating_count
             FROM items i
@@ -95,6 +97,7 @@ class AdminItemModel
                 'item_id'       => (int) $row['item_id'],
                 'title'         => (string) $row['title'],
                 'image'         => isset($row['image']) ? (string) $row['image'] : null,
+                'description'   => isset($row['description']) ? (string) $row['description'] : null,
                 'avg_rating'    => $row['avg_rating'] !== null ? (float) $row['avg_rating'] : null,
                 'rating_count'  => (int) $row['rating_count'],
             ];

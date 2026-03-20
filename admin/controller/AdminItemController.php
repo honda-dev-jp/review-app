@@ -69,6 +69,9 @@ class AdminItemController
         // カレントページの作品一覧を取得
         $items = $this->model->getAll($perPage, $offset);
 
+        // View 固有JS（scripts.php で読み込む）
+        $pageScripts = ['item_list.js', 'item_delete.js'];
+
         // View を呼び出す（$items, $page, $totalPages を渡す）
         require __DIR__ . '/../view/item/list.php';
     }

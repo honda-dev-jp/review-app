@@ -28,20 +28,74 @@
  */
 const detailModal = document.getElementById('detailModal');
 
-detailModal.addEventListener('show.bs.modal', function(event){
+detailModal.addEventListener('show.bs.modal', function (event) {
 
-  const button = event.relatedTarget;
+    const button = event.relatedTarget;
 
-  document.getElementById('detailItemTitle').textContent =
-    button.getAttribute('data-item-title');
+    document.getElementById('detailItemTitle').textContent =
+        button.getAttribute('data-item-title');
 
-  document.getElementById('detailItemImage').src =
-    button.getAttribute('data-item-image');
+    document.getElementById('detailItemImage').src =
+        button.getAttribute('data-item-image');
 
-  document.getElementById('detailItemRating').textContent =
-    button.getAttribute('data-item-rating');
+    // 評価：★CSS幅方式でレンダリング（innerHTML不使用・DOM操作で構築）
+    const rating = button.getAttribute('data-item-rating');
+    const ratingEl = document.getElementById('detailItemRating');
 
-  document.getElementById('detailItemDescription').textContent =
-    button.getAttribute('data-item-description');
+    // 既存の子要素をクリア
+    while (ratingEl.firstChild) {
+        ratingEl.removeChild(ratingEl.firstChild);
+    }
+
+    if (rating === '未評価') {
+        ratingEl.textContent = '未評価';
+    } else {
+        const val = parseFloat(rating);
+        const percent = (val / 5) * 100;
+
+        // 外側ラッパー
+        const wrapper = document.createElement('span');
+        wrapper.style.display = 'inline-flex';
+        wrapper.style.alignItems = 'center';
+        wrapper.style.gap = '4px';
+
+        // 星コンテナ
+        const starContainer = document.createElement('span');
+        starContainer.style.position = 'relative';
+        starContainer.style.display = 'inline-block';
+        starContainer.style.fontSize = '16px';
+        starContainer.style.lineHeight = '1';
+
+        // 背景（グレー★）
+        const starBg = document.createElement('span');
+        starBg.style.color = '#ccc';
+        starBg.textContent = '★★★★★';
+
+        // 前景（黄色★・幅で切り取る）
+        const starFg = document.createElement('span');
+        starFg.style.color = '#f0a500';
+        starFg.style.position = 'absolute';
+        starFg.style.top = '0';
+        starFg.style.left = '0';
+        starFg.style.overflow = 'hidden';
+        starFg.style.whiteSpace = 'nowrap';
+        starFg.style.width = percent + '%';
+        starFg.textContent = '★★★★★';
+
+        starContainer.appendChild(starBg);
+        starContainer.appendChild(starFg);
+
+        // 数値（丸めなし）
+        const valEl = document.createElement('small');
+        valEl.style.color = '#555';
+        valEl.textContent = '(' + val + ')';
+
+        wrapper.appendChild(starContainer);
+        wrapper.appendChild(valEl);
+        ratingEl.appendChild(wrapper);
+    }
+
+    document.getElementById('detailItemDescription').textContent =
+        button.getAttribute('data-item-description');
 
 });
