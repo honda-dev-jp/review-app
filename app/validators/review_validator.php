@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /**
@@ -30,8 +31,8 @@ function validateAddReview(array $post): array
 {
     $errors = [];
 
-    $comment = trim((string)($post['comment'] ?? ''));
-    $rating  = (int)($post['rating'] ?? 0);
+    $comment = trim((string) ($post['comment'] ?? ''));
+    $rating  = (int) ($post['rating'] ?? 0);
 
     if ($comment === '') {
         $errors[] = 'レビュー本文が空です。';
@@ -61,8 +62,8 @@ function validateAddReply(array $post): array
 {
     $errors = [];
 
-    $reply_text = trim((string)($post['reply_text'] ?? ''));
-    $review_id  = (int)($post['review_id'] ?? 0);
+    $reply_text = trim((string) ($post['reply_text'] ?? ''));
+    $review_id  = (int) ($post['review_id'] ?? 0);
 
     if ($review_id <= 0) {
         $errors[] = '返信先レビューが不正です。';

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * ページネーションを処理する関数群
  *
@@ -17,17 +18,18 @@
  * @param string $totalSql 総件数を取得するためのSQLクエリ。
  * @param string $querySql データを取得するためのSQLクエリ（`LIMIT` と `OFFSET` はこの関数内で追加されます）。
  * @param array $bindParams （オプション）SQLクエリにバインドする追加のパラメータ。
- * 
+ *
  * @return array ページネーションに関するデータを含む連想配列
  *   - 'stmt' => PDOStatement ページのデータを取得した結果のステートメントオブジェクト
  *   - 'totalPages' => int 総ページ数
  *   - 'page' => int 現在のページ番号
  *   - 'midStart' => int 表示するページ範囲の開始ページ
  *   - 'midEnd' => int 表示するページ範囲の終了ページ
- * 
+ *
  * @throws PDOException データベースエラーが発生した場合
  */
-function getPagination($pdo, $perPage = 10, $page = 1, $totalSql, $querySql, $bindParams = []) {
+function getPagination($pdo, $perPage = 10, $page = 1, $totalSql, $querySql, $bindParams = [])
+{
     // 総件数を取得
     // $total = (int)$pdo->query($totalSql)->fetchColumn();
     if (!empty($bindParams)) {
@@ -36,12 +38,12 @@ function getPagination($pdo, $perPage = 10, $page = 1, $totalSql, $querySql, $bi
             $totalStmt->bindValue($key, $value);
         }
         $totalStmt->execute();
-        $total = (int)$totalStmt->fetchColumn();
+        $total = (int) $totalStmt->fetchColumn();
     } else {
-        $total = (int)$pdo->query($totalSql)->fetchColumn();
+        $total = (int) $pdo->query($totalSql)->fetchColumn();
     }
 
-    $totalPages = max(1, (int)ceil($total / $perPage));
+    $totalPages = max(1, (int) ceil($total / $perPage));
 
     // 存在しないページ番号は末尾へ丸める（任意だが事故防止）
     if ($page > $totalPages) {
@@ -55,7 +57,7 @@ function getPagination($pdo, $perPage = 10, $page = 1, $totalSql, $querySql, $bi
     $stmt = $pdo->prepare($sql);
     $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
     $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-    
+
     // 追加のバインドパラメータを適用
     foreach ($bindParams as $key => $value) {
         $stmt->bindValue($key, $value);
@@ -76,7 +78,7 @@ function getPagination($pdo, $perPage = 10, $page = 1, $totalSql, $querySql, $bi
         'totalPages' => $totalPages,
         'page' => $page,
         'midStart' => $midStart,
-        'midEnd' => $midEnd
+        'midEnd' => $midEnd,
     ];
 }
 
@@ -89,7 +91,8 @@ function getPagination($pdo, $perPage = 10, $page = 1, $totalSql, $querySql, $bi
  *
  * @return string ページネーションリンクのHTML
  */
-function getPaginationLinks($page, $totalPages, $range = 2) {
+function getPaginationLinks($page, $totalPages, $range = 2)
+{
     // 表示レンジ設定
     $start = max(1, $page - $range);
     $end   = min($totalPages, $page + $range);

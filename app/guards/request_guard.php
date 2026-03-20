@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 require_once __DIR__ . '/redirect_guard.php';
@@ -13,8 +14,8 @@ require_once __DIR__ . '/redirect_guard.php';
  */
 function requirePost(string $redirectTo = '/index.php', string $message = '不正なアクセスです'): void
 {
-  if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
-    // redirect_guard 側で exit するため、ここ以降は実行されない
-    redirectWithError($message, $redirectTo);
-  }
+    if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+        // redirect_guard 側で exit するため、ここ以降は実行されない
+        redirectWithError($message, $redirectTo);
+    }
 }

@@ -65,7 +65,7 @@ $_SESSION['account_delete_confirmed'] = true;
   </div>
   <?php
 
-  ?>
+?>
   <div class="delete-confirm-actions">
     <form method="post" action="./account_delete_execute.php">
       <?php embedCSRFToken(); ?>

@@ -1,4 +1,5 @@
 <?php
+
 // 環境設定を読み込む
 $envConfig = require __DIR__ . '/../config/env.php';
 

@@ -41,27 +41,27 @@ if (!validateCSRFToken()) {
    メイン処理（確認画面）
    ========================================================= */
 try {
-  // review_ids を「安全な int 配列」に正規化（未選択・不正値は例外）
-  $reviewIds = getNormalizedReviewIdsFromPost($_POST, 'review_ids');
+    // review_ids を「安全な int 配列」に正規化（未選択・不正値は例外）
+    $reviewIds = getNormalizedReviewIdsFromPost($_POST, 'review_ids');
 
-  // DB接続
-  $pdo = getPdo();
+    // DB接続
+    $pdo = getPdo();
 
-  // 所有者チェック込みでレビュー取得（表示用）
-  $rows = fetchOwnedReviews($pdo, (int)$_SESSION['user_id'], $reviewIds);
+    // 所有者チェック込みでレビュー取得（表示用）
+    $rows = fetchOwnedReviews($pdo, (int) $_SESSION['user_id'], $reviewIds);
 
-  // 厳格チェック：送信されたID数と一致しない場合は不正扱い
-  if (count($rows) !== count($reviewIds)) {
-    redirectWithError('不正な値です。', '/review_hist/review_hist.php');
-  }
+    // 厳格チェック：送信されたID数と一致しない場合は不正扱い
+    if (count($rows) !== count($reviewIds)) {
+        redirectWithError('不正な値です。', '/review_hist/review_hist.php');
+    }
 
 } catch (InvalidArgumentException $e) {
-  // 入力エラー（未選択・不正値）→ 一覧へ戻す
-  redirectWithError($e->getMessage(), '/review_hist/review_hist.php');
+    // 入力エラー（未選択・不正値）→ 一覧へ戻す
+    redirectWithError($e->getMessage(), '/review_hist/review_hist.php');
 
 } catch (Throwable $e) {
-  // DB/システムエラー → 共通ハンドラ（ログ→ユーザー通知→戻す）
-  handleDbError($e, '/review_hist/review_hist.php');
+    // DB/システムエラー → 共通ハンドラ（ログ→ユーザー通知→戻す）
+    handleDbError($e, '/review_hist/review_hist.php');
 }
 ?>
 <!DOCTYPE html>
@@ -101,7 +101,7 @@ try {
   <!-- 削除実行へ -->
   <form method="post" action="<?= getBaseUrl() ?>/review_hist/review_hist_delete.php" class="button-group history-card-actions">
     <?php foreach ($rows as $val): ?>
-      <input type="hidden" name="review_ids[]" value="<?= (int)$val['review_id'] ?>">
+      <input type="hidden" name="review_ids[]" value="<?= (int) $val['review_id'] ?>">
     <?php endforeach; ?>
     <?php embedCSRFToken(); ?>
     <input type="submit" value="削除">

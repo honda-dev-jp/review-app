@@ -43,13 +43,13 @@ startSecureSession();
  */
 function fetchItem(PDO $pdo, int $item_id): array
 {
-  $stmt = $pdo->prepare('SELECT * FROM items WHERE item_id = ?');
-  $stmt->execute([$item_id]);
-  $item = $stmt->fetch();
-  if (!$item) {
-      throw new RuntimeException('商品が見つかりません。');
-  }
-  return $item;
+    $stmt = $pdo->prepare('SELECT * FROM items WHERE item_id = ?');
+    $stmt->execute([$item_id]);
+    $item = $stmt->fetch();
+    if (!$item) {
+        throw new RuntimeException('商品が見つかりません。');
+    }
+    return $item;
 }
 
 /**
@@ -57,7 +57,7 @@ function fetchItem(PDO $pdo, int $item_id): array
  */
 function fetchReviews(PDO $pdo, int $item_id): array
 {
-  $stmt = $pdo->prepare("
+    $stmt = $pdo->prepare("
       SELECT
         r.*,
         u.name  AS user_name,
@@ -68,8 +68,8 @@ function fetchReviews(PDO $pdo, int $item_id): array
       WHERE r.item_id = ?
       ORDER BY r.created_at DESC
   ");
-  $stmt->execute([$item_id]);
-  return $stmt->fetchAll();
+    $stmt->execute([$item_id]);
+    return $stmt->fetchAll();
 }
 
 /**
@@ -78,12 +78,12 @@ function fetchReviews(PDO $pdo, int $item_id): array
  */
 function fetchRepliesByReview(PDO $pdo, array $review_ids): array
 {
-  if (empty($review_ids)) {
-    return [];
-  }
+    if (empty($review_ids)) {
+        return [];
+    }
 
-  $placeholders = implode(',', array_fill(0, count($review_ids), '?'));
-  $stmt = $pdo->prepare("
+    $placeholders = implode(',', array_fill(0, count($review_ids), '?'));
+    $stmt = $pdo->prepare("
       SELECT
         rr.*,
         u.name  AS reply_user_name,
@@ -94,13 +94,13 @@ function fetchRepliesByReview(PDO $pdo, array $review_ids): array
       WHERE rr.review_id IN ($placeholders)
       ORDER BY rr.created_at ASC
   ");
-  $stmt->execute($review_ids);
+    $stmt->execute($review_ids);
 
-  $result = [];
-  foreach ($stmt->fetchAll() as $row) {
-    $result[(int)$row['review_id']][] = $row;
-  }
-  return $result;
+    $result = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $result[(int) $row['review_id']][] = $row;
+    }
+    return $result;
 }
 
 /**
@@ -109,27 +109,27 @@ function fetchRepliesByReview(PDO $pdo, array $review_ids): array
  */
 function fetchRatingCounts(PDO $pdo, int $item_id): array
 {
-  $stmt = $pdo->prepare("
+    $stmt = $pdo->prepare("
     SELECT rating, COUNT(*) AS cnt
     FROM reviews
     WHERE item_id = ?
     GROUP BY rating
     ORDER BY rating
   ");
-  $stmt->execute([$item_id]);
-  $rows = $stmt->fetchAll();
+    $stmt->execute([$item_id]);
+    $rows = $stmt->fetchAll();
 
-  // 1〜5が必ず揃うように0埋め
-  $rating_counts = [1=>0, 2=>0, 3=>0, 4=>0, 5=>0];
+    // 1〜5が必ず揃うように0埋め
+    $rating_counts = [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0];
 
-  foreach ($rows as $row) {
-    $r = (int)$row['rating'];
-    if ($r >= 1 && $r <= 5) {
-        $rating_counts[$r] = (int)$row['cnt'];
+    foreach ($rows as $row) {
+        $r = (int) $row['rating'];
+        if ($r >= 1 && $r <= 5) {
+            $rating_counts[$r] = (int) $row['cnt'];
+        }
     }
-  }
 
-  return $rating_counts;
+    return $rating_counts;
 }
 
 /**
@@ -137,183 +137,183 @@ function fetchRatingCounts(PDO $pdo, int $item_id): array
  */
 function fetchMeanRating(PDO $pdo, int $item_id): float
 {
-  $stmt = $pdo->prepare("SELECT AVG(rating) FROM reviews WHERE item_id = ?");
-  $stmt->execute([$item_id]);
-  $mean = $stmt->fetchColumn();
+    $stmt = $pdo->prepare("SELECT AVG(rating) FROM reviews WHERE item_id = ?");
+    $stmt->execute([$item_id]);
+    $mean = $stmt->fetchColumn();
 
-  return ($mean === null) ? 0.0 : (float)$mean;
+    return ($mean === null) ? 0.0 : (float) $mean;
 }
 
 try {
-  /* =========================
-      基本情報・ガード
-      ========================= */
+    /* =========================
+        基本情報・ガード
+        ========================= */
 
-  // item_id 取得と妥当性確認（GET必須）
-  $item_id = (int)($_GET['item_id'] ?? 0);
-  if ($item_id <= 0) {
-    redirectWithError('不正なアクセスです。');
-  }
-
-  // ログイン状態（ゲスト閲覧OK、投稿はログイン必須）
-  $is_logged_in = !empty($_SESSION['user_id']);
-  $user_id      = $is_logged_in ? (int)$_SESSION['user_id'] : null;
-  $can_post     = $is_logged_in;
-
-  // 画面表示用メッセージ格納
-  $errors = [];
-  $review_errors = [];
-  $reply_errors  = [];
-  $reply_target_review_id = 0;
-
-  // 入力保持（レビューのみ）
-  $old_comment = '';
-  $old_rating  = 0;
-
-  // redirect_guard 経由で積まれたセッションエラーがある場合、画面側で表示するために取り込む
-  if (!empty($_SESSION['error']) && is_array($_SESSION['error'])) {
-    $errors = array_merge($errors, $_SESSION['error']);
-    unset($_SESSION['error']);
-  }
-
-  // DB接続（例外は catch に集約）
-  $pdo = getPdo();
-
-  /* =========================
-      POST処理（レビュー投稿／返信投稿）
-      ========================= */
-
-  if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
-
-    // CSRF検証（最優先）
-    // csrf.php の validateCSRFToken() は POST から csrf_token を読み、セッションと比較する（hash_equals）
-    if (!validateCSRFToken()) {
-        redirectWithError('不正な操作です。', './item_detail.php?item_id=' . $item_id);
+    // item_id 取得と妥当性確認（GET必須）
+    $item_id = (int) ($_GET['item_id'] ?? 0);
+    if ($item_id <= 0) {
+        redirectWithError('不正なアクセスです。');
     }
 
-    // UIでフォームを非表示にしていても直POSTされる可能性があるため、サーバ側で必ず拒否
-    if (!$can_post) {
-        $errors[] = 'ログインが必要です。';
-    } else {
+    // ログイン状態（ゲスト閲覧OK、投稿はログイン必須）
+    $is_logged_in = !empty($_SESSION['user_id']);
+    $user_id      = $is_logged_in ? (int) $_SESSION['user_id'] : null;
+    $can_post     = $is_logged_in;
 
-      // POSTされた処理種別（想定外は default で弾く）
-      $action = (string)($_POST['action'] ?? '');
+    // 画面表示用メッセージ格納
+    $errors = [];
+    $review_errors = [];
+    $reply_errors  = [];
+    $reply_target_review_id = 0;
 
-      // レビュー投稿時のみ入力保持（エラー時に差し戻すため）
-      if ($action === 'add_review') {
-        $old_comment = (string)($_POST['comment'] ?? '');
-        $old_rating  = (int)($_POST['rating'] ?? 0);
-      }
+    // 入力保持（レビューのみ）
+    $old_comment = '';
+    $old_rating  = 0;
 
-      // action ホワイトリスト（switch の default で不正を弾く）
-      switch ($action) {
-
-        /* -----------------------------
-            レビュー投稿
-            ----------------------------- */
-        case 'add_review':
-          // 入力バリデーション（共通関数）
-          $review_errors = validateAddReview($_POST);
-
-          // 仕様：1ユーザーにつき1作品1レビュー（DBで確認）
-          if (!$review_errors) {
-            $stmt = $pdo->prepare(
-                'SELECT 1 FROM reviews WHERE user_id = ? AND item_id = ? LIMIT 1'
-            );
-            $stmt->execute([$user_id, $item_id]);
-            if ($stmt->fetchColumn()) {
-              $review_errors[] = 'この作品へのレビューは1回までです。';
-            }
-          }
-
-          // エラーが無ければ登録してPRG
-          if (!$review_errors) {
-            $stmt = $pdo->prepare(
-              'INSERT INTO reviews (user_id, comment, item_id, rating) VALUES (?, ?, ?, ?)'
-            );
-            $stmt->execute([
-                $user_id,
-                trim((string)($_POST['comment'] ?? '')),
-                $item_id,
-                (int)($_POST['rating'] ?? 0),
-            ]);
-
-            // PRG（二重投稿防止）
-            // ※ $_SERVER['PHP_SELF'] はリクエストURIから生成されるため XSS リスクがある
-            //   → getBaseUrl() + 固定パスで安全にリダイレクト
-            header('Location: ' . getBaseUrl() . '/items/item_detail.php?item_id=' . $item_id);
-            exit;
-          }
-          break;
-
-          /* -----------------------------
-              返信投稿
-              ----------------------------- */
-        case 'add_reply':
-          // エラー表示位置を特定するため、返信対象 review_id を保持
-          $reply_target_review_id = (int)($_POST['review_id'] ?? 0);
-
-          // 入力バリデーション（返信用の validateAddReply を使う）
-          // ※ 修正前は誤って validateAddReview() を呼んでいたため
-          //    reply_text の空チェック・review_id 正値チェックが機能していなかった
-          $reply_errors = validateAddReply($_POST);
-
-          // 返信先レビューがこの作品に属しているか確認（DB整合性）
-          if (!$reply_errors) {
-            $stmt = $pdo->prepare(
-                'SELECT review_id FROM reviews WHERE review_id = ? AND item_id = ?'
-            );
-            $stmt->execute([$reply_target_review_id, $item_id]);
-            if (!$stmt->fetch()) {
-              $reply_errors[] = '返信先レビューが存在しません。';
-            }
-          }
-
-          // エラーが無ければ登録してPRG
-          if (!$reply_errors) {
-            $stmt = $pdo->prepare(
-                'INSERT INTO review_replies (review_id, user_id, comment) VALUES (?, ?, ?)'
-            );
-            $stmt->execute([
-                $reply_target_review_id,
-                $user_id,
-                trim((string)($_POST['reply_text'] ?? '')),
-            ]);
-
-            // PRG（二重投稿防止）
-            // ※ $_SERVER['PHP_SELF'] はリクエストURIから生成されるため XSS リスクがある
-            //   → getBaseUrl() + 固定パスで安全にリダイレクト
-            header('Location: ' . getBaseUrl() . '/items/item_detail.php?item_id=' . $item_id);
-            exit;
-          }
-          break;
-
-        default:
-          redirectWithError('不正な操作です。', './item_detail.php?item_id=' . $item_id);
-      }
+    // redirect_guard 経由で積まれたセッションエラーがある場合、画面側で表示するために取り込む
+    if (!empty($_SESSION['error']) && is_array($_SESSION['error'])) {
+        $errors = array_merge($errors, $_SESSION['error']);
+        unset($_SESSION['error']);
     }
-  }
 
-  /* =========================
-      表示用データ取得
-      ========================= */
+    // DB接続（例外は catch に集約）
+    $pdo = getPdo();
 
-  $item    = fetchItem($pdo, $item_id);
-  $reviews = fetchReviews($pdo, $item_id);
+    /* =========================
+        POST処理（レビュー投稿／返信投稿）
+        ========================= */
 
-  $review_ids = array_column($reviews, 'review_id');
-  $replies_by_review = fetchRepliesByReview($pdo, $review_ids);
+    if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
 
-  // ★表示・グラフ用（HTMLで使用するので必ず生成）
-  $rating_counts = fetchRatingCounts($pdo, $item_id);
-  $rating_counts_js = json_encode(array_values($rating_counts), JSON_UNESCAPED_UNICODE);
-  $mean = fetchMeanRating($pdo, $item_id);
+        // CSRF検証（最優先）
+        // csrf.php の validateCSRFToken() は POST から csrf_token を読み、セッションと比較する（hash_equals）
+        if (!validateCSRFToken()) {
+            redirectWithError('不正な操作です。', './item_detail.php?item_id=' . $item_id);
+        }
+
+        // UIでフォームを非表示にしていても直POSTされる可能性があるため、サーバ側で必ず拒否
+        if (!$can_post) {
+            $errors[] = 'ログインが必要です。';
+        } else {
+
+            // POSTされた処理種別（想定外は default で弾く）
+            $action = (string) ($_POST['action'] ?? '');
+
+            // レビュー投稿時のみ入力保持（エラー時に差し戻すため）
+            if ($action === 'add_review') {
+                $old_comment = (string) ($_POST['comment'] ?? '');
+                $old_rating  = (int) ($_POST['rating'] ?? 0);
+            }
+
+            // action ホワイトリスト（switch の default で不正を弾く）
+            switch ($action) {
+
+                /* -----------------------------
+                    レビュー投稿
+                    ----------------------------- */
+                case 'add_review':
+                    // 入力バリデーション（共通関数）
+                    $review_errors = validateAddReview($_POST);
+
+                    // 仕様：1ユーザーにつき1作品1レビュー（DBで確認）
+                    if (!$review_errors) {
+                        $stmt = $pdo->prepare(
+                            'SELECT 1 FROM reviews WHERE user_id = ? AND item_id = ? LIMIT 1',
+                        );
+                        $stmt->execute([$user_id, $item_id]);
+                        if ($stmt->fetchColumn()) {
+                            $review_errors[] = 'この作品へのレビューは1回までです。';
+                        }
+                    }
+
+                    // エラーが無ければ登録してPRG
+                    if (!$review_errors) {
+                        $stmt = $pdo->prepare(
+                            'INSERT INTO reviews (user_id, comment, item_id, rating) VALUES (?, ?, ?, ?)',
+                        );
+                        $stmt->execute([
+                            $user_id,
+                            trim((string) ($_POST['comment'] ?? '')),
+                            $item_id,
+                            (int) ($_POST['rating'] ?? 0),
+                        ]);
+
+                        // PRG（二重投稿防止）
+                        // ※ $_SERVER['PHP_SELF'] はリクエストURIから生成されるため XSS リスクがある
+                        //   → getBaseUrl() + 固定パスで安全にリダイレクト
+                        header('Location: ' . getBaseUrl() . '/items/item_detail.php?item_id=' . $item_id);
+                        exit;
+                    }
+                    break;
+
+                    /* -----------------------------
+                        返信投稿
+                        ----------------------------- */
+                case 'add_reply':
+                    // エラー表示位置を特定するため、返信対象 review_id を保持
+                    $reply_target_review_id = (int) ($_POST['review_id'] ?? 0);
+
+                    // 入力バリデーション（返信用の validateAddReply を使う）
+                    // ※ 修正前は誤って validateAddReview() を呼んでいたため
+                    //    reply_text の空チェック・review_id 正値チェックが機能していなかった
+                    $reply_errors = validateAddReply($_POST);
+
+                    // 返信先レビューがこの作品に属しているか確認（DB整合性）
+                    if (!$reply_errors) {
+                        $stmt = $pdo->prepare(
+                            'SELECT review_id FROM reviews WHERE review_id = ? AND item_id = ?',
+                        );
+                        $stmt->execute([$reply_target_review_id, $item_id]);
+                        if (!$stmt->fetch()) {
+                            $reply_errors[] = '返信先レビューが存在しません。';
+                        }
+                    }
+
+                    // エラーが無ければ登録してPRG
+                    if (!$reply_errors) {
+                        $stmt = $pdo->prepare(
+                            'INSERT INTO review_replies (review_id, user_id, comment) VALUES (?, ?, ?)',
+                        );
+                        $stmt->execute([
+                            $reply_target_review_id,
+                            $user_id,
+                            trim((string) ($_POST['reply_text'] ?? '')),
+                        ]);
+
+                        // PRG（二重投稿防止）
+                        // ※ $_SERVER['PHP_SELF'] はリクエストURIから生成されるため XSS リスクがある
+                        //   → getBaseUrl() + 固定パスで安全にリダイレクト
+                        header('Location: ' . getBaseUrl() . '/items/item_detail.php?item_id=' . $item_id);
+                        exit;
+                    }
+                    break;
+
+                default:
+                    redirectWithError('不正な操作です。', './item_detail.php?item_id=' . $item_id);
+            }
+        }
+    }
+
+    /* =========================
+        表示用データ取得
+        ========================= */
+
+    $item    = fetchItem($pdo, $item_id);
+    $reviews = fetchReviews($pdo, $item_id);
+
+    $review_ids = array_column($reviews, 'review_id');
+    $replies_by_review = fetchRepliesByReview($pdo, $review_ids);
+
+    // ★表示・グラフ用（HTMLで使用するので必ず生成）
+    $rating_counts = fetchRatingCounts($pdo, $item_id);
+    $rating_counts_js = json_encode(array_values($rating_counts), JSON_UNESCAPED_UNICODE);
+    $mean = fetchMeanRating($pdo, $item_id);
 
 } catch (\RuntimeException $e) {
     // 1. 商品が見つからないなどの「想定内」の業務エラー
     // 開発者用ログには詳細を記録
     error_log('item_detail.php business error: ' . $e->getMessage());
-    
+
     // ユーザーには例外のメッセージ（「商品が見つかりません。」）をそのまま表示
     redirectWithError($e->getMessage());
 
@@ -385,7 +385,7 @@ try {
   <?php if (!empty($errors)): ?>
     <div class="error">
       <?php foreach ($errors as $e): ?>
-        <div><?= sanitize((string)$e) ?></div>
+        <div><?= sanitize((string) $e) ?></div>
       <?php endforeach; ?>
     </div>
   <?php endif; ?>
@@ -398,7 +398,7 @@ try {
       <?php if (!empty($review_errors)): ?>
         <div class="error">
           <?php foreach ($review_errors as $e): ?>
-            <div><?= sanitize((string)$e) ?></div>
+            <div><?= sanitize((string) $e) ?></div>
           <?php endforeach; ?>
         </div>
       <?php endif; ?>
@@ -455,7 +455,7 @@ try {
         // 退会ユーザー等のフォールバック
         $reviewUserName  = !empty($r['user_name']) ? $r['user_name'] : '退会済みユーザー';
         $reviewUserImage = !empty($r['user_image']) ? $r['user_image'] : null;
-      ?>
+        ?>
 
       <div class="box">
         <?php if ($reviewUserImage): ?>
@@ -470,20 +470,20 @@ try {
 
         <div>
           <strong><?= sanitize($reviewUserName) ?></strong>
-          / 評価: <?= (int)$r['rating'] ?>
+          / 評価: <?= (int) $r['rating'] ?>
         </div>
 
         <div><?= nl2br(sanitize($r['comment'])) ?></div>
-        <div class="meta"><?= sanitize((string)$r['created_at']) ?></div>
+        <div class="meta"><?= sanitize((string) $r['created_at']) ?></div>
 
         <!-- 返信一覧 -->
-        <?php $replies = $replies_by_review[(int)$r['review_id']] ?? []; ?>
+        <?php $replies = $replies_by_review[(int) $r['review_id']] ?? []; ?>
         <?php if (!empty($replies)): ?>
           <?php foreach ($replies as $rr): ?>
             <?php
-              $replyUserName  = !empty($rr['reply_user_name']) ? $rr['reply_user_name'] : '退会済みユーザー';
+                $replyUserName  = !empty($rr['reply_user_name']) ? $rr['reply_user_name'] : '退会済みユーザー';
               $replyUserImage = !empty($rr['reply_user_image']) ? $rr['reply_user_image'] : null;
-            ?>
+              ?>
             <div class="reply">
               <?php if ($replyUserImage): ?>
                 <img src="../images/icon/<?= sanitize($replyUserImage) ?>"
@@ -498,7 +498,7 @@ try {
               <div>
                 <div><strong><?= sanitize($replyUserName) ?></strong>（返信）</div>
                 <div><?= nl2br(sanitize($rr['comment'])) ?></div>
-                <div class="meta"><?= sanitize((string)$rr['created_at']) ?></div>
+                <div class="meta"><?= sanitize((string) $rr['created_at']) ?></div>
               </div>
             </div>
           <?php endforeach; ?>
@@ -508,17 +508,17 @@ try {
         <?php if ($can_post): ?>
           <div class="reply">
 
-            <?php if (!empty($reply_errors) && $reply_target_review_id === (int)$r['review_id']): ?>
+            <?php if (!empty($reply_errors) && $reply_target_review_id === (int) $r['review_id']): ?>
               <div class="error">
                 <?php foreach ($reply_errors as $e): ?>
-                  <div><?= sanitize((string)$e) ?></div>
+                  <div><?= sanitize((string) $e) ?></div>
                 <?php endforeach; ?>
               </div>
             <?php endif; ?>
 
             <form method="post">
               <input type="hidden" name="action" value="add_reply">
-              <input type="hidden" name="review_id" value="<?= (int)$r['review_id'] ?>">
+              <input type="hidden" name="review_id" value="<?= (int) $r['review_id'] ?>">
 
               <!-- CSRF hidden（返信フォームにも必須） -->
               <?php embedCSRFToken(); ?>

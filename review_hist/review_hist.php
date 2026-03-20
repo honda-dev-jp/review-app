@@ -1,27 +1,27 @@
 <?php
-  declare(strict_types=1);
+declare(strict_types=1);
 
-  require_once __DIR__ . '/../config/env.php';
-  require_once __DIR__ . '/../app/security/session.php';
+require_once __DIR__ . '/../config/env.php';
+require_once __DIR__ . '/../app/security/session.php';
 
-  // セッションを安全に開始
-  startSecureSession();
+// セッションを安全に開始
+startSecureSession();
 
-  require_once __DIR__ . '/../app/security/csrf.php';
-  require_once __DIR__ .'/../app/guards/auth_guard.php';
-  require_once __DIR__ .'/../lib/db.php';
-  require_once __DIR__ .'/../lib/sanitize.php';
-  require_once __DIR__ .'/../lib/flash.php';
-	require_once __DIR__ .'/../lib/exception_handler.php';
-  require_once __DIR__ . '/../lib/utils.php';  //BASE_URLの読込み関数
-	require_once __DIR__ .'/../includes/header_nav.php';
-  require_once __DIR__ . '/../includes/pagination.php'; // pagination.php をインクルード
+require_once __DIR__ . '/../app/security/csrf.php';
+require_once __DIR__ . '/../app/guards/auth_guard.php';
+require_once __DIR__ . '/../lib/db.php';
+require_once __DIR__ . '/../lib/sanitize.php';
+require_once __DIR__ . '/../lib/flash.php';
+require_once __DIR__ . '/../lib/exception_handler.php';
+require_once __DIR__ . '/../lib/utils.php';  //BASE_URLの読込み関数
+require_once __DIR__ . '/../includes/header_nav.php';
+require_once __DIR__ . '/../includes/pagination.php'; // pagination.php をインクルード
 
-  // ログインチェック
-	checkLogin();
+// ログインチェック
+checkLogin();
 
-  // CSRFトークンの生成
-  generateCSRFToken();
+// CSRFトークンの生成
+generateCSRFToken();
 ?>
 
 <!DOCTYPE html>
@@ -53,46 +53,46 @@ outputFlash();
 // ==============================
 // 修正：以前は $page をガード内で一度定義した後、再度上書きしていた（二重定義）
 // → まず $page を確定させてからガードを行う方式に統一し、冗長な再代入を除去
-$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
 
 if ($page < 1) {
-  redirectWithError('不正なアクセスです。正しいページからアクセスしてください。');
+    redirectWithError('不正なアクセスです。正しいページからアクセスしてください。');
 }
 
 // ページネーション設定
 $perPage = 10;
 
-try{
-  // DB接続
-  $pdo = getPdo();
+try {
+    // DB接続
+    $pdo = getPdo();
 
-  // ==============================
-  // レビュー履歴一覧を取得
-  // ==============================
-  $totalSql = 'SELECT COUNT(*) FROM reviews WHERE user_id = :user_id';
-  $querySql = 'SELECT review_id, comment, created_at
+    // ==============================
+    // レビュー履歴一覧を取得
+    // ==============================
+    $totalSql = 'SELECT COUNT(*) FROM reviews WHERE user_id = :user_id';
+    $querySql = 'SELECT review_id, comment, created_at
       FROM reviews
       WHERE user_id = :user_id
       ORDER BY created_at DESC';
 
-// バインドパラメーター
-  $bindParams = [
-      ':user_id' => (int)$_SESSION['user_id']
-  ];
+    // バインドパラメーター
+    $bindParams = [
+        ':user_id' => (int) $_SESSION['user_id'],
+    ];
 
-  // ==============================
-  // ページネーション関数の呼び出し
-  // ==============================
-  $paginationData = getPagination($pdo, $perPage, $page, $totalSql, $querySql, $bindParams);
+    // ==============================
+    // ページネーション関数の呼び出し
+    // ==============================
+    $paginationData = getPagination($pdo, $perPage, $page, $totalSql, $querySql, $bindParams);
 
-  // 取得したデータ
-  $rec = $paginationData['stmt'] -> fetchAll();
+    // 取得したデータ
+    $rec = $paginationData['stmt'] -> fetchAll();
 
-  // DB切断
-  $pdo = null;
+    // DB切断
+    $pdo = null;
 
 } catch (Exception $e) {
-  handleDbError($e, './review_hist.php');
+    handleDbError($e, './review_hist.php');
 }
 
 ?>
@@ -111,7 +111,7 @@ try{
           <input
             type="checkbox"
             name="review_ids[]"
-            value="<?= (int)$val['review_id'] ?>"
+            value="<?= (int) $val['review_id'] ?>"
           >
         </div>
 
@@ -144,10 +144,10 @@ try{
   <?php
   // ページネーションリンクの生成
   echo getPaginationLinks($page, $paginationData['totalPages']);
-  ?>
+?>
 </main>
 <!-- フッター -->
-<?php require_once __DIR__.'/../includes/footer.php'; ?>
+<?php require_once __DIR__ . '/../includes/footer.php'; ?>
 
 <!-- ページ最下部へ -->
 <div id="scroll-bottom" class="scroll-arrow scroll-arrow--bottom" title="ページ最下部へ">↓</div>
