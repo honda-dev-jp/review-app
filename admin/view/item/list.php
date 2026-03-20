@@ -65,11 +65,8 @@
 
                   <!-- 平均評価 -->
                   <td>
-                    <?= $item['avg_rating'] !== null
-                        ? number_format((float) $item['avg_rating'], 1)
-                        : '未評価'
-                  ?>
-                  </td>
+                    <?= renderAdminStarRating($item['avg_rating']) ?>
+                </td>
 
                   <!-- レビュー数 -->
                   <td><?= $item['rating_count'] ?></td>

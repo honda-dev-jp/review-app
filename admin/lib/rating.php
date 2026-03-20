@@ -3,17 +3,18 @@
 declare(strict_types=1);
 
 /**
- * 平均評価を ★☆ 表示でレンダリングするヘルパー関数
+ * 平均評価を ★ 塗り割合（CSS幅）でレンダリングするヘルパー関数
  *
  * 表示イメージ：
- *   ★★★★☆（4.0）
- *   ★★★☆☆（3.1）
+ *   ★★★★☆（4.0）← 4.0/5.0 = 80% 塗り
+ *   ★★★☆☆（3.1）← 3.1/5.0 = 62% 塗り
  *   未評価
  *
  * 設計方針：
- * - 整数に丸めて塗り★と空☆を並べる
- * - 数値は小数点1桁で添える
+ * - ユーザー側と同じ CSS 幅方式で小数点以下も表現する
+ * - .star-rating / .star-bg / .star-fg は admin.css で定義
  * - Bootstrap に依存しない純粋なHTML文字列を返す
+ * - sanitize() は bootstrap.php 経由で読み込み済みの前提
  *
  * @param float|null $avg  平均評価（null の場合は未評価）
  * @param int        $max  最大評価（通常5）
@@ -25,16 +26,21 @@ function renderAdminStarRating(?float $avg, int $max = 5): string
         return '<span class="text-muted">未評価</span>';
     }
 
-    $rounded = (int) round($avg);
-    $filled  = str_repeat('★', $rounded);
-    $empty   = str_repeat('☆', $max - $rounded);
-    $value   = number_format($avg, 1);
+    $avg     = round($avg, 1);
+    $percent = ($avg / $max) * 100;
+    $stars   = str_repeat('★', $max);
 
     return sprintf(
-        '<span class="text-warning">%s</span><span class="text-secondary">%s</span>'
-        . '&nbsp;<small class="text-muted">（%s）</small>',
-        htmlspecialchars($filled, ENT_QUOTES, 'UTF-8'),
-        htmlspecialchars($empty, ENT_QUOTES, 'UTF-8'),
-        htmlspecialchars($value, ENT_QUOTES, 'UTF-8'),
+        '<div style="display:flex;align-items:center;gap:4px;">'
+        . '<div class="star-rating">'
+        . '<div class="star-bg">%s</div>'
+        . '<div class="star-fg" style="width:%s%%">%s</div>'
+        . '</div>'
+        . '<span class="rating-value">%s</span>'
+        . '</div>',
+        $stars,
+        $percent,
+        $stars,
+        sanitize((string) $avg),
     );
 }

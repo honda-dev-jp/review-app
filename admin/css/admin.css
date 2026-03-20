@@ -141,3 +141,37 @@ body{
   }
 
 }
+
+/* =====================================================
+  星評価（admin.css への追記分）
+===================================================== */
+
+/* 星評価コンテナ */
+.star-rating {
+  position: relative;
+  display: inline-block;
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* 背景（グレー★） */
+.star-bg {
+  color: #ccc;
+}
+
+/* 前景（黄色★・幅で切り取る） */
+.star-fg {
+  color: #f0a500;
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* 数値 */
+.rating-value {
+  margin-left: 4px;
+  font-size: 13px;
+  color: #555;
+}
