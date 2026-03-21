@@ -147,4 +147,38 @@ class AdminItemModel
             'image'			=> isset($row['image']) ? (string) $row['image'] : null,
         ];
     }
+
+    // =========================================================
+    // 削除
+    // =========================================================
+
+    /**
+     * item_id を指定して作品を1件削除する。
+     *
+     * - 削除に成功した場合（1件削除）は true を返す
+     * - 対象が存在しない場合（0件削除）は false を返す
+     * - 例外は呼び出し元（Controller）に委譲する
+     *
+     * 【呼び出し元での判定例】
+     * if ($this->model->deleteById($itemId)) {
+     *     // 成功処理
+     * } else {
+     *     // 失敗処理（対象が見つからなかった等）
+     * }
+     *
+     * @param int $itemId 削除対象の作品ID
+     * @return bool 1件削除できた場合 true、それ以外は false
+     */
+    public function deleteById(int $itemId): bool
+    {
+        $stmt = $this->pdo->prepare('
+            DELETE FROM items WHERE item_id = :item_id 
+        ');
+        $stmt->bindValue(':item_id', $itemId, PDO::PARAM_INT);
+        $stmt->execute();
+
+        // rowCount() で実際に削除された件数を確認する
+        // 1件削除できていれば true、0件（対象なし）なら false
+        return $stmt->rowCount() === 1;
+    }
 }
