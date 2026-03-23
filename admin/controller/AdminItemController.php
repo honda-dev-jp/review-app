@@ -75,4 +75,109 @@ class AdminItemController
         // View を呼び出す（$items, $page, $totalPages を渡す）
         require __DIR__ . '/../view/item/list.php';
     }
+
+    /**
+     * 作品削除処理
+     *
+     * 処理の流れ：
+     * 1. POSTチェック・CSRFチェック・item_idバリデーション
+     * 2. findById() で作品情報取得（画像ファイル名を確保）
+     * 3. トランザクション開始
+     * 4. DB削除
+     * 5. commit()
+     * 6. DB削除成功後に画像ファイル削除（失敗はログのみ）
+     * 7. 成功リダイレクト
+     *
+     * 【注意】
+     * - redirectWithSuccess() / redirectWithError() は内部でexitするため
+     *   commit() と画像削除は必ずリダイレクトより前に実行すること
+     * - ファイル削除はトランザクションで巻き戻せないため、DB削除成功後に実行する
+     * - rollBack() は handleAdminError() より前に実行すること
+     *
+     * @return void
+     */
+    public function delete(): void
+    {
+        $messages = require __DIR__ . '/../lang/messages.php';
+
+        // catch内で参照するため事前に初期化
+        $pdo    = null;
+        $itemId = 0;
+
+        try {
+            // POST確認（失敗時は内部でリダイレクト・exit）
+            requirePost();
+
+            // CSRF確認
+            if (!validateCSRFTokenOnce()) {
+                redirectWithError($messages['common']['csrf_error'], '/admin/item_list.php');
+            }
+
+            // item_id バリデーション
+            $itemId = (int) ($_POST['item_id'] ?? 0);
+            if ($itemId <= 0) {
+                redirectWithError($messages['common']['invalid_value'], '/admin/item_list.php');
+            }
+
+            // 作品情報取得（画像ファイル名を確保）
+            $item = $this->model->findById($itemId);
+            if ($item === null) {
+                redirectWithError($messages['item']['not_found'], '/admin/item_list.php');
+            }
+            $imageName = $item['image'];
+
+            // PDO取得・トランザクション開始
+            $pdo = $this->model->getPdo();
+            $pdo->beginTransaction();
+
+            // DB削除
+            $deleted = $this->model->deleteById($itemId);
+
+            if (!$deleted) {
+                $pdo->rollBack();
+                redirectWithError($messages['item']['delete_failed'], '/admin/item_list.php');
+            }
+
+            // DB削除成功 → commit
+            $pdo->commit();
+
+            // commit後にサムネイル画像を削除
+            // getBaseUrl() はURL用のためunlink()には使えない → サーバーパスを使う
+            // __DIR__ = admin/controller/ → ../../ でプロジェクトルートへ
+            $protectedImages = ['no_image.png'];
+            if ($imageName !== null && !in_array($imageName, $protectedImages, true)) {
+                $imagePath = dirname(dirname(__DIR__)) . '/images/thumbnail/' . basename($imageName);
+                if (is_file($imagePath)) {
+                    if (!@unlink($imagePath)) {
+                        error_log('[Admin] 画像削除失敗: ' . $imagePath);
+                    }
+                }
+            }
+
+            // 成功リダイレクト（exit）
+            redirectWithSuccess($messages['item']['delete_success'], '/admin/item_list.php');
+
+        } catch (\PDOException $e) {
+            // rollBack() を handleAdminError() より前に実行すること
+            if (isset($pdo) && $pdo instanceof \PDO && $pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            handleAdminError(
+                $e,
+                (int) ($_SESSION['user_id'] ?? 0),
+                $itemId,
+                '/admin/item_list.php',
+            );
+        } catch (\Throwable $e) {
+            if (isset($pdo) && $pdo instanceof \PDO && $pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            handleAdminError(
+                $e,
+                (int) ($_SESSION['user_id'] ?? 0),
+                $itemId,
+                '/admin/item_list.php',
+            );
+        }
+    }
 }
