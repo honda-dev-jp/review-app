@@ -1,4 +1,4 @@
-# 既存の設定：HTTPSへの転送（これは消さずに残します）
+# 既存の設定：HTTPSへの転送
 RewriteEngine On
 RewriteCond %{HTTPS} off
 # localhost（Docker等のローカル環境）はHTTPSリダイレクト対象外
@@ -6,10 +6,12 @@ RewriteCond %{HTTP_HOST} !^localhost [NC]
 RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
 
 # ----------------------------------------------------------------------
-# セキュリティ強化設定（ここから追記）
+# セキュリティ強化設定
 # ----------------------------------------------------------------------
 
 # 1. WordPressを狙ったボットなどのアクセスを拒否
+#    wp-*.php / xmlrpc.php へのアクセスを全て遮断
+#    ※当サイトはWordPressを使用していないため全件拒否
 <FilesMatch "^(wp-.*|xmlrpc\.php)">
     Order allow,deny
     Deny from all
@@ -18,16 +20,34 @@ RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
 # 2. ディレクトリの中身（ファイル一覧）をブラウザで見せない
 Options -Indexes
 
-# 3. .htaccess自身や設定ファイル（.envなど）へのアクセスを禁止
-<FilesMatch "^\.(ht|env)">
+# 3. .htaccess自身や基本的な設定ファイルへのアクセスを禁止
+#    対象：.htaccess / .htpasswd / .env（拡張子なし）
+<FilesMatch "^\.(ht|env)$">
     Order allow,deny
     Deny from all
 </FilesMatch>
 
-# 4. .gitディレクトリへのアクセスを拒否（共有ホスティング互換）
+# 4. .envバリエーション全般を拒否
+#    対象：.env.local / .env.production / .env.bak / .env.backup 等
+#    ※ 4月のログで130件超の探索を確認したため追加
+<FilesMatch "^\.env">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# 5. phpinfo系ファイルへのアクセスを拒否
+#    対象：phpinfo.php / info.php / php-info.php / debug.php
+#    ※ PHPバージョン・サーバー設定情報の漏洩を防ぐ
+<FilesMatch "^(phpinfo|info|php-info|debug)\.php$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# 6. .gitディレクトリへのアクセスを拒否（共有ホスティング互換）
+#    ※ RedirectMatchはDirectoryMatchより共有ホスティングでの互換性が高い
 RedirectMatch 404 /\.git
 
-# 5. 不正スキャン元IPアドレスをアクセス拒否
+# 7. 不正スキャン元IPアドレスをアクセス拒否
 deny from 4.241.228.159
 deny from 20.215.69.209
 deny from 104.46.226.22
