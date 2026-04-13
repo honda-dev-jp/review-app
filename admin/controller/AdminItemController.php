@@ -180,4 +180,22 @@ class AdminItemController
             );
         }
     }
+    /**
+     * 作品追加画面を表示する / 追加処理を行う
+     *
+     * GET：追加フォームを表示する
+     * POST：入力値を受け取り、バリデーション・DB登録を行う
+     *
+     * @return void
+     */
+    public function add(): void
+    {
+        // バリデーションエラー時の入力値保持
+        $errors = $_SESSION['errors'] ?? [];
+        $old    = $_SESSION['old'] ?? [];
+        unset($_SESSION['errors'], $_SESSION['old']);
+
+        // View を呼び出す
+        require __DIR__ . '/../view/item/add.php';
+    }
 }
