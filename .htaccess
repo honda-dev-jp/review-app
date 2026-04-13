@@ -47,7 +47,16 @@ Options -Indexes
 #    ※ RedirectMatchはDirectoryMatchより共有ホスティングでの互換性が高い
 RedirectMatch 404 /\.git
 
-# 7. 不正スキャン元IPアドレスをアクセス拒否
+# 7. /administrator/ 系パスを拒否
+#    対象：Joomla / SilverStripe 等のCMSを狙ったスキャン
+#    ※ 2026/04/12 ログで 185.5.249.66 からの探索を確認したため追加
+RedirectMatch 403 ^/administrator
+
+# 8. 不正スキャン元IPアドレスをアクセス拒否
+#    ※ 追加分：2026/04/12 ログで高頻度スキャンを確認したIP
 deny from 4.241.228.159
 deny from 20.215.69.209
 deny from 104.46.226.22
+deny from 13.71.185.179
+deny from 20.220.147.82
+deny from 74.248.34.0
