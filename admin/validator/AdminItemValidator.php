@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../rules/required.php';
-require_once __DIR__ . '/../rules/max_length.php';
-require_once __DIR__ . '/../rules/image.php';
+require_once __DIR__ . '/rules/required.php';
+require_once __DIR__ . '/rules/max_length.php';
+require_once __DIR__ . '/rules/image.php';
 
 /*
 * 管理画面：作品登録・編集の入力バリデーション
