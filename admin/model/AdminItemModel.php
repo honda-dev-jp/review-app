@@ -197,4 +197,33 @@ class AdminItemModel
         // 1件削除できていれば true、0件（対象なし）なら false
         return $stmt->rowCount() === 1;
     }
+
+    // =========================================================
+    // 新規作品登録
+    // =========================================================
+    /**
+     * 作品を新規登録する。
+     *
+     * - 登録に成功した場合は新規登録された作品の item_id を返す
+     * - 例外は呼び出し元（Controller）に委譲する
+     *
+     * @param string $title       作品タイトル
+     * @param string|null $description 作品説明（任意）
+     * @param string|null $image       画像ファイルパス（任意）
+     * @return int 登録された作品の item_id
+     */
+    public function insert(string $title, ?string $description, ?string $image): int
+    {
+        $stmt = $this->pdo->prepare('
+            INSERT INTO items (title, description, image, category_id)
+            VALUES (:title, :description, :image, :category_id)
+        ');
+        $stmt->bindValue(':title', $title, PDO::PARAM_STR);
+        $stmt->bindValue(':description', $description, $description === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+        $stmt->bindValue(':image', $image, $image === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+        $stmt->bindValue(':category_id', 1, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return (int) $this->pdo->lastInsertId();
+    }
 }
