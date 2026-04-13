@@ -11,11 +11,19 @@
         作品一覧
       </a>
     </li>
+
+    <li class="nav-item mb-2">
+      <a class="nav-link" href="<?= ADMIN_BASE_PATH ?>/admin/item_add.php">
+        作品追加
+      </a>
+    </li>
+    
     <li class="nav-item mb-2">
       <a class="nav-link" href="<?= ADMIN_BASE_PATH ?>/mypage/mypage.php">
         マイページに戻る
       </a>
     </li>
+    
   </ul>
 
   <hr>
