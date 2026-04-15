@@ -30,7 +30,7 @@ require_once __DIR__ . '/../lib/utils.php'; // 共通化したutils.phpをイン
 function checkAdmin(): void
 {
     // 管理者以外はアクセス不可
-    if ($_SESSION['role'] !== 'admin') {
+    if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
         $messages = require __DIR__ . '/../lang/messages.php';
         $_SESSION['error'][] = $messages['common']['admin_only'];
 
