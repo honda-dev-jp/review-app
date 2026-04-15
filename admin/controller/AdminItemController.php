@@ -427,6 +427,9 @@ class AdminItemController
 
             // 旧画像の取得
             $currentItem = $this->model->findById($itemId);
+            if ($currentItem === null) {
+                redirectWithError($messages['item']['not_found'], '/admin/item_list.php');
+            }
             $oldImageName = $currentItem['image'] ?? null;
 
             // フォームの入力値を取得
@@ -480,16 +483,16 @@ class AdminItemController
 
                 // 保存先ディレクトリの存在・書き込み可能チェック
                 if (!is_dir($dir)) {
-                    redirectWithError($messages['image']['dir_not_found'], '/admin/item_edit.php');
+                    redirectWithError($messages['image']['dir_not_found'], '/admin/item_edit.php?item_id=' . $itemId);
                 }
                 if (!is_writable($dir)) {
-                    redirectWithError($messages['image']['dir_not_writable'], '/admin/item_edit.php');
+                    redirectWithError($messages['image']['dir_not_writable'], '/admin/item_edit.php?item_id=' . $itemId);
                 }
 
                 // 一時ファイルを保存先へ移動する
                 // 失敗した場合は DB 登録せずエラーで戻す（孤児ファイルも発生しない）
                 if (!move_uploaded_file($image['tmp_name'], $path)) {
-                    redirectWithError($messages['image']['upload_failed'], '/admin/item_edit.php');
+                    redirectWithError($messages['image']['upload_failed'], '/admin/item_edit.php?item_id=' . $itemId);
                 }
 
                 // 保存成功時のみ DB に登録するファイル名をセットする
@@ -498,7 +501,10 @@ class AdminItemController
 
             // DB に作品を更新する（未選択時は既存画像を維持する）
             $imageToSave = $imageName ?? $oldImageName;
-            $this->model->update($itemId, $title, $description, $imageToSave);
+            $update = $this->model->update($itemId, $title, $description, $imageToSave);
+            if (!$update) {
+                redirectWithError($messages['item']['update_failed'], '/admin/item_list.php');
+            }
 
             // 旧画像の削除
             $protectedImages = ['no_image.png'];
