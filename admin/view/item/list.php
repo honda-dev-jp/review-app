@@ -90,7 +90,7 @@
                       ? number_format((float) $item['avg_rating'], 1)
                       : '未評価'
                   ?>"
-                        data-item-description="<?= sanitize($item['description']) ?? '' ?>"
+                        data-item-description="<?= sanitize((string) ($item['description'] ?? '')) ?>"
                       >
                         詳細
                       </button>
@@ -195,10 +195,6 @@
 
 <?php require __DIR__ . '/../layout/footer.php'; ?>
 <?php require __DIR__ . '/../layout/scripts.php'; ?>
-
-<!-- ページ固有JS -->
-<script src="<?= ADMIN_BASE_PATH ?>/admin/js/item_list.js"></script>
-<script src="<?= ADMIN_BASE_PATH ?>/admin/js/item_delete.js"></script>
 
 </body>
 </html>
