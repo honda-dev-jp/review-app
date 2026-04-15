@@ -38,8 +38,12 @@ function validateAdminItem(array $post, array $files): array
     // 2. 説明文は任意
 
     // 3. 画像は任意。アップロードエラー（サイズ超過）
-    if ($files['image']['error'] !== UPLOAD_ERR_NO_FILE) {
-        if (!is_valid_image($files['image'])) {
+    // imageキーが無い場合は「未選択」として扱う
+    $imageError = $files['image']['error'] ?? UPLOAD_ERR_NO_FILE;
+
+    // 画像が送信されている場合のみ検証する
+    if ($imageError !== UPLOAD_ERR_NO_FILE) {
+        if (!isset($files['image']) || !is_valid_image($files['image'])) {
             $errors['image'] = $messages['validate']['item_image_invalid'];
         }
     }
