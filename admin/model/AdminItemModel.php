@@ -226,4 +226,38 @@ class AdminItemModel
 
         return (int) $this->pdo->lastInsertId();
     }
+
+    // =========================================================
+    // 作品情報更新
+    // =========================================================
+    /**
+     * 作品情報を更新する。
+     *
+     * - 更新に成功した場合（1件更新）は true を返す
+     * - 対象が存在しない場合（0件更新）は false を返す
+     * - 例外は呼び出し元（Controller）に委譲する
+     *
+     * @param int $itemId              作品ID
+     * @param string $title            作品タイトル
+     * @param string|null $description 作品説明（任意）
+     * @param string|null $image       画像ファイルパス（任意）
+     * @return bool 1件更新できた場合 true、それ以外は false
+     */
+    public function update(int $itemId, string $title, ?string $description, ?string $image): bool
+    {
+        $stmt = $this->pdo->prepare('
+            UPDATE items
+            SET title = :title,
+                description = :description,
+                image = :image
+            WHERE item_id = :item_id
+        ');
+        $stmt->bindValue(':title', $title, PDO::PARAM_STR);
+        $stmt->bindValue(':description', $description, $description === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+        $stmt->bindValue(':image', $image, $image === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+        $stmt->bindValue(':item_id', $itemId, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->rowCount() === 1;
+    }
 }
