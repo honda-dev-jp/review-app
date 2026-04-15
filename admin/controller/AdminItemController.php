@@ -346,4 +346,200 @@ class AdminItemController
             );
         }
     }
+
+    /**
+     * 作品編集画面を表示する / 更新処理を行う
+     *
+     * GET：編集フォームを表示する
+     *   1. item_id を GETパラメータから取得・正の整数化チェック
+     *   2. findById() で作品情報を取得（nullなら not_found エラー）
+     *   3. セッションから $errors / $old を取り出す
+     *   4. view/item/edit.php
+     *
+     * POST：入力値を受け取り、バリデーション・画像差し替え・DB更新を行う
+     *   処理の流れ：
+     *   1. CSRFチェック
+     *   2. item_id・入力値のバリデーション
+     *   3. findById() で既存の画像ファイル名を取得（差し替え時の旧画像削除用）
+     *   4. 画像が選択されていれば保存
+     *   5. DB更新（update()）
+     *   6. DB更新成功後に旧画像を削除
+     *   7. 成功リダイレクト → 一覧へ
+     *
+     * 【設計上の注意点】
+     * - 旧画像の削除は DB更新成功後に実行すること（失敗時に画像だけ消えるのを防ぐ）
+     * - DB更新失敗時は新しく保存した画像を削除して孤児ファイルを防ぐ
+     * - 追加処理と異なり item_id が存在するため handleAdminError の第3引数に渡す
+     *
+     * @return void
+     */
+    public function edit(): void
+    {
+        $messages = require __DIR__ . '/../lang/messages.php';
+
+        // catch 内で参照するため try の外で初期化する
+        $itemId    = 0;
+        $imageName = null;
+
+        // -------------------------
+        // GET: 編集画面を表示
+        // -------------------------
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            // バリデーションエラー時にセッションへ保存した値を取り出す
+            // （初回表示時はどちらも空配列になる）
+            $errors = $_SESSION['errors'] ?? [];
+            $old    = $_SESSION['old'] ?? [];
+
+            // 取り出したら即座に削除（リロード時の二重表示防止）
+            unset($_SESSION['errors'], $_SESSION['old']);
+
+            // GETから item_id を取得しバリデーション
+            $itemId = (int) ($_GET['item_id'] ?? 0);
+            if ($itemId <= 0) {
+                redirectWithError($messages['common']['invalid_value'], '/admin/item_list.php');
+            }
+
+            // item_id 取得後に作品情報を取得する
+            $item = $this->model->findById($itemId);
+            if ($item === null) {
+                redirectWithError($messages['item']['not_found'], '/admin/item_list.php');
+            }
+
+            // 編集フォームを描画（$item, $errors, $old を View へ渡す）
+            require __DIR__ . '/../view/item/edit.php';
+            return;
+        }
+
+        // -------------------------
+        // POST: 更新処理
+        // -------------------------
+        try {
+            // CSRFトークンを検証（成功時にワンタイム消費）
+            if (!validateCSRFTokenOnce()) {
+                redirectWithError($messages['common']['csrf_error'], '/admin/item_edit.php');
+            }
+
+            // item_idのバリデーション
+            $itemId = (int) ($_POST['item_id'] ?? 0);
+            if ($itemId <= 0) {
+                redirectWithError($messages['common']['invalid_value'], '/admin/item_list.php');
+            }
+
+            // 旧画像の取得
+            $currentItem = $this->model->findById($itemId);
+            $oldImageName = $currentItem['image'] ?? null;
+
+            // フォームの入力値を取得
+            $post  = $_POST;
+            $files = $_FILES;
+
+            // バリデーションを実行（エラーメッセージの配列が返る）
+            require_once __DIR__ . '/../validator/AdminItemValidator.php';
+            $errors = validateAdminItem($post, $files);
+
+            // バリデーションエラーがある場合は入力値を保持して編集画面へ戻す
+            if (!empty($errors)) {
+                $_SESSION['errors'] = $errors;
+                $_SESSION['old']    = $post;
+                redirectWithError($messages['common']['invalid_value'], '/admin/item_edit.php?item_id=' . $itemId);
+            }
+
+            // タイトルの前後空白を除去
+            $title = trim((string) ($post['title'] ?? ''));
+
+            // 説明文：空文字の場合は null として DB に保存する（任意項目）
+            $description = trim((string) ($post['description'] ?? ''));
+            $description = $description === '' ? null : $description;
+
+            // 画像：未選択なら既存画像を維持する。選択されている場合のみ保存処理を行う
+            if (
+                isset($files['image']['error'])
+                && $files['image']['error'] !== UPLOAD_ERR_NO_FILE
+            ) {
+                $image = $files['image'];
+
+                // MIMEタイプで画像の種別を判定する（拡張子は偽装できるため）
+                $finfo = new \finfo(FILEINFO_MIME_TYPE);
+                $mime  = $finfo->file($image['tmp_name']);
+
+                // 許可するMIMEタイプと対応する拡張子の対応表
+                $allowed = [
+                    'image/jpeg' => 'jpg',
+                    'image/png'  => 'png',
+                    'image/gif'  => 'gif',
+                    'image/webp' => 'webp',
+                ];
+
+                // ランダムなファイル名を生成（予測不可能にするため）
+                $filename = bin2hex(random_bytes(16)) . '.' . $allowed[$mime];
+
+                // 保存先ディレクトリのサーバーパスを組み立てる
+                // __DIR__ = admin/controller/ → dirname×2 でプロジェクトルートへ
+                $dir  = dirname(dirname(__DIR__)) . '/images/thumbnail';
+                $path = rtrim($dir, '/\\') . DIRECTORY_SEPARATOR . $filename;
+
+                // 保存先ディレクトリの存在・書き込み可能チェック
+                if (!is_dir($dir)) {
+                    redirectWithError($messages['image']['dir_not_found'], '/admin/item_edit.php');
+                }
+                if (!is_writable($dir)) {
+                    redirectWithError($messages['image']['dir_not_writable'], '/admin/item_edit.php');
+                }
+
+                // 一時ファイルを保存先へ移動する
+                // 失敗した場合は DB 登録せずエラーで戻す（孤児ファイルも発生しない）
+                if (!move_uploaded_file($image['tmp_name'], $path)) {
+                    redirectWithError($messages['image']['upload_failed'], '/admin/item_edit.php');
+                }
+
+                // 保存成功時のみ DB に登録するファイル名をセットする
+                $imageName = $filename;
+            }
+
+            // DB に作品を更新する（未選択時は既存画像を維持する）
+            $imageToSave = $imageName ?? $oldImageName;
+            $this->model->update($itemId, $title, $description, $imageToSave);
+
+            // 旧画像の削除
+            $protectedImages = ['no_image.png'];
+            if ($oldImageName !== null && $imageName !== null && !in_array($oldImageName, $protectedImages, true)) {
+                $oldPath = dirname(dirname(__DIR__)) . '/images/thumbnail/' . basename($oldImageName);
+                if (is_file($oldPath)) {
+                    @unlink($oldPath);
+                }
+            }
+
+            // 更新成功後は一覧へ戻す（内部で exit）
+            redirectWithSuccess($messages['item']['update_success'], '/admin/item_list.php');
+
+        } catch (\PDOException $e) {
+            // DB更新失敗時：保存済み画像が残らないよう削除する（孤児ファイル防止）
+            if ($imageName !== null) {
+                $orphanPath = dirname(dirname(__DIR__)) . '/images/thumbnail/' . basename($imageName);
+                if (is_file($orphanPath)) {
+                    @unlink($orphanPath);
+                }
+            }
+            handleAdminError(
+                $e,
+                (int) ($_SESSION['user_id'] ?? 0),
+                $itemId,
+                '/admin/item_edit.php',
+            );
+        } catch (\Throwable $e) {
+            // その他の例外でも同様に孤児ファイルを削除する
+            if ($imageName !== null) {
+                $orphanPath = dirname(dirname(__DIR__)) . '/images/thumbnail/' . basename($imageName);
+                if (is_file($orphanPath)) {
+                    @unlink($orphanPath);
+                }
+            }
+            handleAdminError(
+                $e,
+                (int) ($_SESSION['user_id'] ?? 0),
+                $itemId,
+                '/admin/item_edit.php',
+            );
+        }
+    }
 }
