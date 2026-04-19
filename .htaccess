@@ -1,4 +1,4 @@
-# 既存の設定：HTTPSへの転送（これは消さずに残します）
+# 既存の設定：HTTPSへの転送
 RewriteEngine On
 RewriteCond %{HTTPS} off
 # localhost（Docker等のローカル環境）はHTTPSリダイレクト対象外
@@ -6,10 +6,12 @@ RewriteCond %{HTTP_HOST} !^localhost [NC]
 RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
 
 # ----------------------------------------------------------------------
-# セキュリティ強化設定（ここから追記）
+# セキュリティ強化設定
 # ----------------------------------------------------------------------
 
 # 1. WordPressを狙ったボットなどのアクセスを拒否
+#    wp-*.php / xmlrpc.php へのアクセスを全て遮断
+#    ※当サイトはWordPressを使用していないため全件拒否
 <FilesMatch "^(wp-.*|xmlrpc\.php)">
     Order allow,deny
     Deny from all
@@ -18,16 +20,67 @@ RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
 # 2. ディレクトリの中身（ファイル一覧）をブラウザで見せない
 Options -Indexes
 
-# 3. .htaccess自身や設定ファイル（.envなど）へのアクセスを禁止
-<FilesMatch "^\.(ht|env)">
+# 3. .htaccess自身や基本的な設定ファイルへのアクセスを禁止
+#    対象：.htaccess / .htpasswd / .env（拡張子なし）
+<FilesMatch "^\.(ht|env)$">
     Order allow,deny
     Deny from all
 </FilesMatch>
 
-# 4. .gitディレクトリへのアクセスを拒否（共有ホスティング互換）
+# 4. .envバリエーション全般を拒否
+#    対象：.env.local / .env.production / .env.bak / .env.backup 等
+#    ※ 4月のログで130件超の探索を確認したため追加
+<FilesMatch "^\.env">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# 5. phpinfo系ファイルへのアクセスを拒否
+#    対象：phpinfo.php / info.php / php-info.php / debug.php
+#    ※ PHPバージョン・サーバー設定情報の漏洩を防ぐ
+<FilesMatch "^(phpinfo|info|php-info|debug)\.php$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# 6. .gitディレクトリへのアクセスを拒否（共有ホスティング互換）
+#    ※ RedirectMatchはDirectoryMatchより共有ホスティングでの互換性が高い
 RedirectMatch 404 /\.git
 
-# 5. 不正スキャン元IPアドレスをアクセス拒否
+# 7. /administrator/ 系パスを拒否
+#    対象：Joomla / SilverStripe 等のCMSを狙ったスキャン
+#    ※ 2026/04/12 ログで 185.5.249.66 からの探索を確認したため追加
+RedirectMatch 403 ^/administrator
+
+# 8. 不正スキャン元IPアドレスをアクセス拒否
+#    ※ 追加分：2026/04/12 ログで高頻度スキャンを確認したIP
 deny from 4.241.228.159
 deny from 20.215.69.209
 deny from 104.46.226.22
+deny from 13.71.185.179
+deny from 20.220.147.82
+deny from 74.248.34.0
+#    ※ 追加分：2026/04/13 ログで高頻度スキャンを確認したIP（上位3IP・全体の81%を占有）
+deny from 4.204.218.1
+deny from 20.104.18.4
+deny from 20.151.218.28
+#    ※ 追加分：2026/04/14 ログで高頻度スキャンを確認したIP
+deny from 20.166.25.209
+deny from 88.151.32.234
+deny from 128.90.135.11
+#    ※ 追加分：2026/04/15 ログで高頻度スキャンを確認したIP
+deny from 20.220.161.65
+deny from 20.43.56.9
+deny from 136.107.149.64
+#    ※ 追加分：2026/04/16 ログで高頻度スキャンを確認したIP
+deny from 20.215.249.39
+deny from 72.146.43.163
+deny from 216.73.216.133
+#    ※ 追加分：2026/04/17 ログで高頻度スキャンを確認したIP
+deny from 4.235.108.154
+deny from 40.78.181.132
+deny from 216.73.216.192
+#    ※ 追加分：2026/04/18 ログで高頻度スキャンを確認したIP
+deny from 20.63.32.193
+deny from 132.196.3.209
+deny from 20.166.51.62
