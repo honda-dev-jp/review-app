@@ -97,7 +97,7 @@ return [
         'item_title_required'    => 'タイトルを入力してください。',
         'item_title_too_long'    => 'タイトルは80文字以内で入力してください。',
         'item_category_required' => 'カテゴリを選択してください。',
-        'item_image_invalid'     => '無効な画像ファイルです。jpeg / png / gif / webp 形式で1MB以内のファイルを選択してください。',
+        'item_image_invalid'     => '無効な画像ファイルです。jpeg / png / gif / webp 形式で5MB以内のファイルを選択してください。',
     ],
 
     // =========================================================

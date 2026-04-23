@@ -27,7 +27,7 @@ function is_valid_image(array $file): bool
     }
 
     // 3.ファイルのサイズチェック
-    if (isset($file['size']) && $file['size'] > 1 * 1024 * 1024) {
+    if (isset($file['size']) && $file['size'] > 5 * 1024 * 1024) {
         return false;
     }
 
