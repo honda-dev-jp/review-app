@@ -416,7 +416,7 @@ class AdminItemController
         try {
             // CSRFトークンを検証（成功時にワンタイム消費）
             if (!validateCSRFTokenOnce()) {
-                redirectWithError($messages['common']['csrf_error'], '/admin/item_edit.php');
+                redirectWithError($messages['common']['csrf_error'], '/admin/item_list.php');
             }
 
             // item_idのバリデーション
