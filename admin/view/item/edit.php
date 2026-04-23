@@ -87,7 +87,7 @@
               >
               <div class="form-text">
 								新しい画像を選択すると差し替えになります。選択しない場合は現在の画像を維持します。<br>
-                jpeg / png / gif / webp 形式・1MB以内
+                jpeg / png / gif / webp 形式・5MB以内
               </div>
             </div>
 

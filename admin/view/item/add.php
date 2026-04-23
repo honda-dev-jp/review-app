@@ -74,7 +74,7 @@
                 name="image"
                 accept="image/jpeg,image/png,image/gif,image/webp"
               >
-              <div class="form-text">jpeg / png / gif / webp 形式・1MB以内</div>
+              <div class="form-text">jpeg / png / gif / webp 形式・5MB以内</div>
             </div>
 
             <!-- ボタン -->

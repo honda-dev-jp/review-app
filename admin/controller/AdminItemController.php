@@ -254,7 +254,7 @@ class AdminItemController
             if (!empty($errors)) {
                 $_SESSION['errors'] = $errors;
                 $_SESSION['old']    = $post;
-                redirectWithError($messages['common']['invalid_value'], '/admin/item_add.php');
+                redirectTo('/admin/item_add.php');
             }
 
             // タイトルの前後空白を除去
@@ -444,7 +444,7 @@ class AdminItemController
             if (!empty($errors)) {
                 $_SESSION['errors'] = $errors;
                 $_SESSION['old']    = $post;
-                redirectWithError($messages['common']['invalid_value'], '/admin/item_edit.php?item_id=' . $itemId);
+                redirectTo('/admin/item_edit.php?item_id=' . $itemId);
             }
 
             // タイトルの前後空白を除去
