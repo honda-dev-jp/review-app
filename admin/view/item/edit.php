@@ -70,7 +70,7 @@
 							<div class="mb-2">
 								<p>現在の画像：</p>
 								<img
-									src="<?=sanitize(getBaseUrl()) ?>/images/thumbnail/<?= sanitize($item['image']) ?>"
+									src="<?=ADMIN_BASE_PATH ?>/images/thumbnail/<?= sanitize($item['image']) ?>"
 									alt="現在のサムネイル"
 									style="width: 120px; height: auto;"
 								>
