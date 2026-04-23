@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /**
@@ -67,7 +68,7 @@ function normalizePositiveIntIds(array $rawIds): array
     $ids = [];
 
     foreach ($rawIds as $val) {
-        $id = (int)$val;
+        $id = (int) $val;
         if ($id > 0) {
             $ids[] = $id;
         }

@@ -2,10 +2,10 @@
 /config/env.php
 /config/database.php
 /.vscode
-# 管理フォルダを隠す
-/admin
+
 # テストフォルダを隠す
 /test
+
 # 画像ファイルは除外（ディレクトリのみ管理対象）
 /images/thumbnail/*
 !/images/thumbnail/.gitkeep
@@ -13,7 +13,9 @@
 !/images/icon/.gitkeep
 /images/no_image/*
 !/images/no_image/.gitkeep
+
 # Windowsシステムファイル
 Thumbs.db
-# php-cs-fixer
+
+# PHP CS Fixer（コード整形ツール）の設定・キャッシュファイル
 .php-cs-fixer.cache

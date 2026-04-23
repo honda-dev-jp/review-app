@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 require_once __DIR__ . '/../../lib/sql_helper.php';
@@ -32,9 +33,9 @@ require_once __DIR__ . '/../../lib/sql_helper.php';
  */
 function fetchOwnedReviews(PDO $pdo, int $userId, array $reviewIds): array
 {
-  $placeholders = buildInPlaceholders(count($reviewIds));
+    $placeholders = buildInPlaceholders(count($reviewIds));
 
-  $sql = "
+    $sql = "
       SELECT review_id, comment, created_at
       FROM reviews
       WHERE user_id = ?
@@ -42,25 +43,25 @@ function fetchOwnedReviews(PDO $pdo, int $userId, array $reviewIds): array
       ORDER BY created_at DESC
   ";
 
-  $stmt = $pdo->prepare($sql);
+    $stmt = $pdo->prepare($sql);
 
-  // プレースホルダ順：user_id → review_ids...
-  $params = array_merge([$userId], $reviewIds);
-  $stmt->execute($params);
+    // プレースホルダ順：user_id → review_ids...
+    $params = array_merge([$userId], $reviewIds);
+    $stmt->execute($params);
 
-  $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-  // 取得結果の型を明示的に整える（review_id を int に正規化）
-  $out = [];
-  foreach ($rows as $row) {
-    $out[] = [
-      'review_id'   => (int)$row['review_id'],
-      'comment'     => (string)$row['comment'],
-      'created_at'  => (string)$row['created_at'],
-    ];
-  }
+    // 取得結果の型を明示的に整える（review_id を int に正規化）
+    $out = [];
+    foreach ($rows as $row) {
+        $out[] = [
+            'review_id'   => (int) $row['review_id'],
+            'comment'     => (string) $row['comment'],
+            'created_at'  => (string) $row['created_at'],
+        ];
+    }
 
-  return $out;
+    return $out;
 }
 
 /**
@@ -76,24 +77,24 @@ function fetchOwnedReviews(PDO $pdo, int $userId, array $reviewIds): array
  */
 function fetchOwnedReviewIds(PDO $pdo, int $userId, array $reviewIds): array
 {
-  $placeholders = buildInPlaceholders(count($reviewIds));
+    $placeholders = buildInPlaceholders(count($reviewIds));
 
-  $sql = "
+    $sql = "
       SELECT review_id
       FROM reviews
       WHERE user_id = ?
         AND review_id IN ($placeholders)
   ";
 
-  $stmt = $pdo->prepare($sql);
-  $stmt->execute(array_merge([$userId], $reviewIds));
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(array_merge([$userId], $reviewIds));
 
-  $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-  $ownedReviewIds = [];
-  foreach ($rows as $row) {
-    $ownedReviewIds[] = (int)$row['review_id'];
-  }
+    $ownedReviewIds = [];
+    foreach ($rows as $row) {
+        $ownedReviewIds[] = (int) $row['review_id'];
+    }
 
-  return $ownedReviewIds;
+    return $ownedReviewIds;
 }

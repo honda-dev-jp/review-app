@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 require_once __DIR__ . '/../config/env.php';
@@ -18,7 +19,7 @@ require_once __DIR__ . '/../lib/db.php';
 // /app/validators/user_validator.phpを直接読み込むようにした為。
 // require_once __DIR__ . '/../lib/validation/user.php';
 require_once __DIR__ . '/../lib/image_upload.php';
-require_once __DIR__.'/../lib/exception_handler.php';
+require_once __DIR__ . '/../lib/exception_handler.php';
 
 // ==============================
 // ガード処理
@@ -52,84 +53,84 @@ if (!in_array($mode, $allowedModes, true)) {
 $errors = validateUser($_POST, $_FILES, $mode);
 
 if (!empty($errors)) {
-  $_SESSION['error'] = $errors;
-  $_SESSION['old'] = $_POST;
-  unset($_SESSION['old']['pass'], $_SESSION['old']['pass2']);
-  redirectTo('/profile/profile_add.php');
+    $_SESSION['error'] = $errors;
+    $_SESSION['old'] = $_POST;
+    unset($_SESSION['old']['pass'], $_SESSION['old']['pass2']);
+    redirectTo('/profile/profile_add.php');
 }
 
 /* =========================================================
    メイン処理
    ========================================================= */
 try {
-  // DB接続
-  $pdo = getPdo();
+    // DB接続
+    $pdo = getPdo();
 
-  // トランザクション開始
-  $pdo->beginTransaction();
+    // トランザクション開始
+    $pdo->beginTransaction();
 
-  // メールアドレスの重複チェック
-  $sql  = 'SELECT user_id FROM users WHERE email=?';
-  $stmt = $pdo->prepare($sql);
-  $stmt->execute([$email]);
-  if ($stmt->fetch()) {
-    throw new RuntimeException('このメールアドレスは既に使用されています。');
-  }
+    // メールアドレスの重複チェック
+    $sql  = 'SELECT user_id FROM users WHERE email=?';
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([$email]);
+    if ($stmt->fetch()) {
+        throw new RuntimeException('このメールアドレスは既に使用されています。');
+    }
 
-  // 画像アップロード処理（ここだけ単純化：$img を作らず $_FILES['image'] を直接見る）
-  $savedImageName = null;
-  if (!empty($_FILES['image']['name'])) {
-    $savedImageName = uploadImage($_FILES['image'], __DIR__ . '/../images/icon');
-  }
+    // 画像アップロード処理（ここだけ単純化：$img を作らず $_FILES['image'] を直接見る）
+    $savedImageName = null;
+    if (!empty($_FILES['image']['name'])) {
+        $savedImageName = uploadImage($_FILES['image'], __DIR__ . '/../images/icon');
+    }
 
-  // パスワードのハッシュ化
-  $hash = password_hash($pass, PASSWORD_DEFAULT);
+    // パスワードのハッシュ化
+    $hash = password_hash($pass, PASSWORD_DEFAULT);
 
-  // ユーザー情報の挿入
-  $sql  = 'INSERT INTO users (name, email, pass, prof, image, role) VALUES (?,?,?,?,?,?)';
-  $stmt = $pdo->prepare($sql);
-  $stmt->execute([
-      $name,
-      $email,
-      $hash,
-      $prof,
-      $savedImageName,  // 画像は任意
-      'member'
-  ]);
+    // ユーザー情報の挿入
+    $sql  = 'INSERT INTO users (name, email, pass, prof, image, role) VALUES (?,?,?,?,?,?)';
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([
+        $name,
+        $email,
+        $hash,
+        $prof,
+        $savedImageName,  // 画像は任意
+        'member',
+    ]);
 
-  // user_idをコミット前に確保
-  $newUserId = $pdo->lastInsertId();
+    // user_idをコミット前に確保
+    $newUserId = $pdo->lastInsertId();
 
-  // コミット
-  $pdo->commit();
+    // コミット
+    $pdo->commit();
 
-  // ==============================
-  // 完了処理
-  // ==============================
+    // ==============================
+    // 完了処理
+    // ==============================
 
-  // セッション作成
-  $_SESSION['user_id'] = $newUserId;
-  $_SESSION['name']    = $name;
-  $_SESSION['role']    = 'member';
+    // セッション作成
+    $_SESSION['user_id'] = $newUserId;
+    $_SESSION['name']    = $name;
+    $_SESSION['role']    = 'member';
 
-  // フラッシュメッセージをセットし、マイページへリダイレクト
-  redirectWithSuccess('ユーザー登録が完了しました。', '/mypage/mypage.php');
+    // フラッシュメッセージをセットし、マイページへリダイレクト
+    redirectWithSuccess('ユーザー登録が完了しました。', '/mypage/mypage.php');
 
 } catch (RuntimeException $e) {
-  if (isset($pdo) && $pdo->inTransaction()) {
-    $pdo->rollBack();
-  }
+    if (isset($pdo) && $pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
 
-  // 画面に出したい業務エラーメッセージをそのまま積む
-  $_SESSION['error'] = $_SESSION['error'] ?? [];
-  $_SESSION['error'][] = $e->getMessage();
-  $_SESSION['old'] = $_POST;
-  unset($_SESSION['old']['pass'], $_SESSION['old']['pass2']);
+    // 画面に出したい業務エラーメッセージをそのまま積む
+    $_SESSION['error'] = $_SESSION['error'] ?? [];
+    $_SESSION['error'][] = $e->getMessage();
+    $_SESSION['old'] = $_POST;
+    unset($_SESSION['old']['pass'], $_SESSION['old']['pass2']);
 
-  redirectTo('/profile/profile_add.php');
+    redirectTo('/profile/profile_add.php');
 } catch (Throwable $e) {
-  if (isset($pdo) && $pdo->inTransaction()) {
-    $pdo->rollBack();
-  }
-  handleDbError($e, '/profile/profile_add.php');
+    if (isset($pdo) && $pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+    handleDbError($e, '/profile/profile_add.php');
 }

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 require_once __DIR__ . '/../config/env.php';
@@ -41,7 +42,7 @@ if (!validateCSRFTokenOnce()) {
 try {
     // review_ids を安全な int 配列に正規化
     $reviewIds = getNormalizedReviewIdsFromPost($_POST, 'review_ids');
-    $userId = (int)$_SESSION['user_id'];
+    $userId = (int) $_SESSION['user_id'];
 
     $pdo = getPdo();
     $pdo->beginTransaction();

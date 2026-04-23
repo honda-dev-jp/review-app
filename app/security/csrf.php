@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 require_once __DIR__ . '/../../lib/sanitize.php';
@@ -9,18 +10,18 @@ require_once __DIR__ . '/../../lib/sanitize.php';
  */
 function ensureSessionStarted(): void
 {
-  if (session_status() === PHP_SESSION_ACTIVE) {
-    return;
-  }
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        return;
+    }
 
-  // 可能なら安全なセッション開始を優先（session.php 側の設計を尊重）
-  if (function_exists('startSecureSession')) {
-    startSecureSession();
-    return;
-  }
+    // 可能なら安全なセッション開始を優先（session.php 側の設計を尊重）
+    if (function_exists('startSecureSession')) {
+        startSecureSession();
+        return;
+    }
 
-  // 最後の保険（事故防止）
-  session_start();
+    // 最後の保険（事故防止）
+    session_start();
 }
 
 /**
@@ -28,14 +29,14 @@ function ensureSessionStarted(): void
  */
 function generateCSRFToken(): string
 {
-  ensureSessionStarted();
+    ensureSessionStarted();
 
-  if (empty($_SESSION['csrf_token'])) {
-    // 32バイトのランダムトークン（16進で64文字）
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-  }
+    if (empty($_SESSION['csrf_token'])) {
+        // 32バイトのランダムトークン（16進で64文字）
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
 
-  return (string)$_SESSION['csrf_token'];
+    return (string) $_SESSION['csrf_token'];
 }
 
 /**
@@ -43,8 +44,8 @@ function generateCSRFToken(): string
  */
 function embedCSRFToken(): void
 {
-  $token = generateCSRFToken();
-  echo '<input type="hidden" name="csrf_token" value="' . sanitize($token) . '">';
+    $token = generateCSRFToken();
+    echo '<input type="hidden" name="csrf_token" value="' . sanitize($token) . '">';
 }
 
 /**
@@ -53,20 +54,20 @@ function embedCSRFToken(): void
  */
 function validateCSRFToken(): bool
 {
-  ensureSessionStarted();
+    ensureSessionStarted();
 
-  $posted = $_POST['csrf_token'] ?? '';
-  $saved  = $_SESSION['csrf_token'] ?? '';
+    $posted = $_POST['csrf_token'] ?? '';
+    $saved  = $_SESSION['csrf_token'] ?? '';
 
-  if ($posted === '' || $saved === '') {
-    return false;
-  }
+    if ($posted === '' || $saved === '') {
+        return false;
+    }
 
-  // CSRFトークンの検証
-  // 単純な === 比較ではなく hash_equals() を使用することで、
-  // 比較途中で処理が終了することによる時間差を防ぎ、
-  // トークン推測（タイミング攻撃）を防止する
-  return hash_equals($saved, (string)$posted);
+    // CSRFトークンの検証
+    // 単純な === 比較ではなく hash_equals() を使用することで、
+    // 比較途中で処理が終了することによる時間差を防ぎ、
+    // トークン推測（タイミング攻撃）を防止する
+    return hash_equals($saved, (string) $posted);
 }
 
 /**
@@ -75,10 +76,10 @@ function validateCSRFToken(): bool
  */
 function validateCSRFTokenOnce(): bool
 {
-  if (!validateCSRFToken()) {
-    return false;
-  }
+    if (!validateCSRFToken()) {
+        return false;
+    }
 
-  unset($_SESSION['csrf_token']);
-  return true;
+    unset($_SESSION['csrf_token']);
+    return true;
 }

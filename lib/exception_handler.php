@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 require_once __DIR__ . '/../app/guards/redirect_guard.php';
@@ -22,20 +23,20 @@ require_once __DIR__ . '/../app/guards/redirect_guard.php';
  */
 function handleDbError(Throwable $e, string $redirectTo = '/index.php', ?string $userMessage = null): never
 {
-  error_log(sprintf(
-    '[%s] %s in %s:%d',
-    get_class($e),
-    $e->getMessage(),
-    $e->getFile(),
-    $e->getLine()
-  ));
+    error_log(sprintf(
+        '[%s] %s in %s:%d',
+        get_class($e),
+        $e->getMessage(),
+        $e->getFile(),
+        $e->getLine(),
+    ));
 
-  if (session_status() !== PHP_SESSION_ACTIVE) {
-    session_start();
-  }
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+        session_start();
+    }
 
-  $message = $userMessage ?? 'システムエラーが発生しました。しばらくしてから再度お試しください。';
+    $message = $userMessage ?? 'システムエラーが発生しました。しばらくしてから再度お試しください。';
 
-  // redirect_guard 側で $_SESSION['error'][] に積んで exit まで完結させる
-  redirectWithError($message, $redirectTo);
+    // redirect_guard 側で $_SESSION['error'][] に積んで exit まで完結させる
+    redirectWithError($message, $redirectTo);
 }

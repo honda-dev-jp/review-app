@@ -62,8 +62,8 @@ generateCSRFToken();
 
   <?php
   // footerの読み込み
-  require_once __DIR__.'/includes/footer.php';
-  ?>
+  require_once __DIR__ . '/includes/footer.php';
+?>
 
 </body>
 </html>

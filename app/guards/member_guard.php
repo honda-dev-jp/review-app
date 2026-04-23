@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /**
@@ -27,20 +28,20 @@ require_once __DIR__ . '/../../lib/utils.php'; // 共通化したutils.phpをイ
 
 function checkMember(): void
 {
-  // セッション未開始なら開始（事故防止）
-  if (session_status() !== PHP_SESSION_ACTIVE) {
-    session_start();
-  }
+    // セッション未開始なら開始（事故防止）
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+        session_start();
+    }
 
-  // 会員以外はアクセス不可
-  if ($_SESSION['role'] !== 'member') {
-    $_SESSION['error'][] = "会員専用ページにアクセスできません。";
+    // 会員以外はアクセス不可
+    if ($_SESSION['role'] !== 'member') {
+        $_SESSION['error'][] = "会員専用ページにアクセスできません。";
 
-    // ベースURLを取得して、リダイレクト先のURLを組み立て
-    $baseUrl = getBaseUrl();
-    $location = $baseUrl . '/index.php'; // ベースURLに `/index.php` を追加
+        // ベースURLを取得して、リダイレクト先のURLを組み立て
+        $baseUrl = getBaseUrl();
+        $location = $baseUrl . '/index.php'; // ベースURLに `/index.php` を追加
 
-    header('Location: ' . $location);
-    exit;
-  }
+        header('Location: ' . $location);
+        exit;
+    }
 }

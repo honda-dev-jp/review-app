@@ -30,24 +30,24 @@ generateCSRFToken();
 $old = $_SESSION['old'] ?? [];
 unset($_SESSION['old']);
 
-$user_id = (int)($_SESSION['user_id'] ?? 0);
+$user_id = (int) ($_SESSION['user_id'] ?? 0);
 
 /* =========================================================
    DB処理（現ユーザー情報取得）
    ========================================================= */
 try {
-  $pdo = getPdo();
+    $pdo = getPdo();
 
-  $sql = 'SELECT * FROM users WHERE user_id = ?';
-  $stmt = $pdo->prepare($sql);
-  $stmt->execute([$user_id]);
+    $sql = 'SELECT * FROM users WHERE user_id = ?';
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([$user_id]);
 
-  $rec = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+    $rec = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
 
-  $pdo = null;
+    $pdo = null;
 
 } catch (Exception $e) {
-  handleDbError($e, '/profile/profile_edit.php');
+    handleDbError($e, '/profile/profile_edit.php');
 }
 
 // サニタイズ（old 優先）
@@ -57,7 +57,7 @@ $profValue  = sanitize($old['prof']  ?? $rec['prof']  ?? '');
 
 // 画像名（表示に使うなら basename 保険）
 $imageName = $rec['image'] ?? '';
-$imageNameSafe = basename((string)$imageName);
+$imageNameSafe = basename((string) $imageName);
 ?>
 <!DOCTYPE html>
 <html lang="ja">
