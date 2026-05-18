@@ -1,5 +1,11 @@
-# 既存の設定：HTTPSへの転送
+# 0. www を portfolio.honda-dev.com に統一リダイレクト
+#    ※ www.honda-dev.com へのアクセスが本アプリに到達するため追加
+#    ※ 2026/05/17 POST /で500エラーが発生したため対処
 RewriteEngine On
+RewriteCond %{HTTP_HOST} ^www\.honda-dev\.com [NC]
+RewriteRule ^ https://portfolio.honda-dev.com%{REQUEST_URI} [R=301,L]
+
+# 既存の設定：HTTPSへの転送
 RewriteCond %{HTTPS} off
 # localhost（Docker等のローカル環境）はHTTPSリダイレクト対象外
 RewriteCond %{HTTP_HOST} !^localhost [NC]
