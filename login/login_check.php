@@ -2,7 +2,8 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../config/env.php';
+require_once __DIR__ . '/../lib/config_loader.php';
+loadPrivateEnvConfig();
 require_once __DIR__ . '/../app/security/session.php';
 
 // セッションを安全に開始

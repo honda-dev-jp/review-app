@@ -3,7 +3,8 @@
 declare(strict_types=1);
 
 // 1. 環境設定
-require_once __DIR__ . '/../config/env.php';
+require_once __DIR__ . '/../lib/config_loader.php';
+loadPrivateEnvConfig();
 
 // 2. 共通関数・定数
 require_once __DIR__ . '/lib/utils.php';

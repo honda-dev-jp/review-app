@@ -1,7 +1,6 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/../config/env.php';
 require_once __DIR__ . '/../app/security/session.php';
 
 // セッションを安全に開始
@@ -83,7 +82,7 @@ try {
     // ==============================
     // ページネーション関数の呼び出し
     // ==============================
-    $paginationData = getPagination($pdo, $perPage, $page, $totalSql, $querySql, $bindParams);
+    $paginationData = getPagination($pdo, $totalSql, $querySql, $perPage, $page, $bindParams);
 
     // 取得したデータ
     $rec = $paginationData['stmt'] -> fetchAll();

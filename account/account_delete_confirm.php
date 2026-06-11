@@ -1,7 +1,8 @@
 <?php
 declare(strict_types=1); // 修正：他のPHPファイルと統一。strict_types が抜けていたため追加。
 
-require_once __DIR__ . '/../config/env.php';
+require_once __DIR__ . '/../lib/config_loader.php';
+loadPrivateEnvConfig();
 require_once __DIR__ . '/../app/security/session.php';
 
 // セッションを安全に開始

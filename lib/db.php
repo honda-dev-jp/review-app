@@ -1,7 +1,6 @@
 <?php
 
-require_once __DIR__ . '/../config/env.php'; // 環境設定ファイル
-require_once __DIR__ . '/../config/database.php'; // データベース設定ファイル
+require_once __DIR__ . '/config_loader.php';
 
 /**
  * 汎用DB接続関数
@@ -11,8 +10,8 @@ require_once __DIR__ . '/../config/database.php'; // データベース設定フ
 function getPdo(): PDO
 {
     // 環境設定を読み込む
-    $envConfig = require __DIR__ . '/../config/env.php';
-    $dbConfig = require __DIR__ . '/../config/database.php';
+    $envConfig = loadPrivateConfig('env.php');
+    $dbConfig = loadPrivateConfig('database.php');
 
     // APP_ENV を取得
     $env = $envConfig['APP_ENV']; // 'local', 'home', 'prod', 'aws'など

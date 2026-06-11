@@ -1,7 +1,9 @@
 <?php
 
+require_once __DIR__ . '/../../lib/config_loader.php';
+
 // 環境設定を読み込む
-$envConfig = require __DIR__ . '/../../config/env.php';
+$envConfig = loadPrivateEnvConfig();
 
 /**
  * ベースURLを取得する関数

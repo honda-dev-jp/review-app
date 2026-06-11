@@ -1,7 +1,8 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/config/env.php'; // 環境設定の読み込み
+require_once __DIR__ . '/lib/config_loader.php'; // 環境設定の読み込み
+loadPrivateEnvConfig();
 require_once __DIR__ . '/app/security/session.php'; // セッションの管理
 
 // セッションを安全に開始
