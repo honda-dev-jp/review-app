@@ -64,3 +64,7 @@ RedirectMatch 403 ^/administrator
 #    ※ 2026/04/25 ログで 103.153.183.69 から /admin/.env への探索を確認したため追加
 RedirectMatch 403 /\.env($|/)
 
+# 9. configディレクトリへの直接アクセスを拒否
+#    対象：/config/database.php 等
+#    ※ DB接続情報など設定ファイルの直接参照を防ぐ
+RedirectMatch 403 ^/config(/|$)
