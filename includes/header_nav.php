@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/../lib/sanitize.php';
 require_once __DIR__ . '/../lib/utils.php';
+require_once __DIR__ . '/../app/security/csrf.php';
 
 /**
  * $_SESSION['name']を<header><nav>要素に表示する関数
@@ -22,7 +23,10 @@ function outputHeaderNav()
             echo '様';
         }
         echo '</span>';
-        echo '<a href="' . getBaseUrl() . '/login/logout.php">ログアウト</a>';
+        echo '<form method="post" action="' . getBaseUrl() . '/login/logout.php" class="logout-form">';
+        embedCSRFToken();
+        echo '<button type="submit" class="logout-button">ログアウト</button>';
+        echo '</form>';
         // ゲスト用
     } else {
         echo '<span>ようこそゲスト様</span>';
