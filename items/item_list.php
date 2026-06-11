@@ -10,7 +10,6 @@ declare(strict_types=1);
  *   パストラバーサルの可能性があった → basename() + sanitize() の二重防御に統一
  */
 
-require_once __DIR__ . '/../config/env.php';
 require_once __DIR__ . '/../app/security/session.php';
 
 // セッションを安全に開始
@@ -81,7 +80,7 @@ try {
               GROUP BY i.item_id
               ORDER BY avg_rating DESC, rating_count DESC';
 
-    $paginationData = getPagination($pdo, $perPage, $page, $totalSql, $querySql);
+    $paginationData = getPagination($pdo, $totalSql, $querySql, $perPage, $page);
 
     // 取得したデータ
     $rec = $paginationData['stmt'] -> fetchAll();

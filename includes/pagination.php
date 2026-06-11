@@ -13,10 +13,10 @@
  * この関数は、指定されたページ番号に基づいてデータを取得し、ページネーションの設定を計算して返します。
  *
  * @param PDO $pdo PDOオブジェクト。データベースへの接続を管理します。
- * @param int $perPage 1ページに表示するデータの数（デフォルトは10件）。
- * @param int $page 現在のページ番号（デフォルトは1）。
  * @param string $totalSql 総件数を取得するためのSQLクエリ。
  * @param string $querySql データを取得するためのSQLクエリ（`LIMIT` と `OFFSET` はこの関数内で追加されます）。
+ * @param int $perPage 1ページに表示するデータの数（デフォルトは10件）。
+ * @param int $page 現在のページ番号（デフォルトは1）。
  * @param array $bindParams （オプション）SQLクエリにバインドする追加のパラメータ。
  *
  * @return array ページネーションに関するデータを含む連想配列
@@ -28,7 +28,7 @@
  *
  * @throws PDOException データベースエラーが発生した場合
  */
-function getPagination($pdo, $perPage = 10, $page = 1, $totalSql, $querySql, $bindParams = [])
+function getPagination($pdo, $totalSql, $querySql, $perPage = 10, $page = 1, $bindParams = [])
 {
     // 総件数を取得
     // $total = (int)$pdo->query($totalSql)->fetchColumn();

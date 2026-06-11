@@ -19,7 +19,8 @@ declare(strict_types=1);
  *   （PHP_SELF はリクエストURIから生成されるため XSS リスクあり）
  */
 
-require_once __DIR__ . '/../config/env.php';
+require_once __DIR__ . '/../lib/config_loader.php';
+loadPrivateEnvConfig();
 require_once __DIR__ . '/../app/security/session.php';
 require_once __DIR__ . '/../app/security/csrf.php';
 require_once __DIR__ . '/../app/guards/redirect_guard.php';

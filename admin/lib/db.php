@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/../../lib/config_loader.php';
+
 /**
  * 汎用DB接続関数
  * @return PDO PDOオブジェクト
@@ -10,8 +12,8 @@ declare(strict_types=1);
 function getPdo(): PDO
 {
     // 環境設定を読み込む
-    $envConfig = require __DIR__ . '/../../config/env.php';
-    $dbConfig = require __DIR__ . '/../../config/database.php';
+    $envConfig = loadPrivateConfig('env.php');
+    $dbConfig = loadPrivateConfig('database.php');
 
     // APP_ENV を取得
     $env = $envConfig['APP_ENV']; // 'local', 'home', 'prod', 'aws'など
