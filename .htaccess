@@ -68,3 +68,30 @@ RedirectMatch 403 /\.env($|/)
 #    対象：/config/database.php 等
 #    ※ DB接続情報など設定ファイルの直接参照を防ぐ
 RedirectMatch 403 ^/config(/|$)
+
+# 10. 内部処理用ディレクトリへの直接アクセスを拒否
+#     PHP内部の require_once には影響しない。ブラウザからの直接URLアクセスのみ拒否する。
+RedirectMatch 403 ^/(?:app|includes|lib)(?:/|$)
+
+# 11. 管理画面配下の内部処理用ファイル・ディレクトリを拒否
+#     /admin/item_list.php 等の画面URL、/admin/css/、/admin/js/ は拒否しない。
+RedirectMatch 403 ^/admin/(?:bootstrap\.php|controller|guards|lang|lib|model|validator|view)(?:/|$)
+
+# 12. 公開不要なドットファイル・ドットディレクトリを拒否
+#     対象：/.gitignore / .gitattributes / .php-cs-fixer.cache / .vscode/ / .github/ 等
+#     例外：/.well-known/ は証明書更新・外部検証用途で使われる可能性があるため許可
+#     ※ /.git/ は上の RedirectMatch 404 で処理するため除外
+RedirectMatch 403 (^|/)\.(?!well-known(?:/|$)|git(?:/|$))[^/]+
+
+# 13. 公開不要なドキュメント・開発用ディレクトリを拒否
+#     対象：/docs/ / README.md / AGENTS.md
+RedirectMatch 403 ^/docs(?:/|$)
+RedirectMatch 403 ^/(?:README|AGENTS)\.md$
+
+# 14. 依存関係・ビルド・整形ツール系の設定ファイルを拒否
+#     将来 composer/npm 等を追加した場合の直接参照を防ぐ
+RedirectMatch 403 ^/(?:composer\.(?:json|lock)|package(?:-lock)?\.json|yarn\.lock|pnpm-lock\.yaml)$
+
+# 15. バックアップ・SQLダンプ・ログ・一時ファイルを拒否
+#     対象例：*.bak / *.backup / *.old / *.orig / *.save / *.tmp / *.sql / *.log 等
+RedirectMatch 403 (?i)(^|/).*\.(?:bak|backup|old|orig|save|swp|swo|tmp|temp|sql|sqlite|db|log)$
