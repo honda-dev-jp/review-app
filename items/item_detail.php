@@ -26,6 +26,7 @@ require_once __DIR__ . '/../app/guards/redirect_guard.php';
 require_once __DIR__ . '/../app/validators/review_validator.php';
 
 require_once __DIR__ . '/../lib/db.php';
+require_once __DIR__ . '/../lib/exception_handler.php';
 require_once __DIR__ . '/../lib/rating.php';
 require_once __DIR__ . '/../lib/sanitize.php';
 require_once __DIR__ . '/../lib/utils.php';  //BASE_URLの読込み関数
@@ -311,17 +312,14 @@ try {
 
 } catch (\RuntimeException $e) {
     // 1. 商品が見つからないなどの「想定内」の業務エラー
-    // 開発者用ログには詳細を記録
-    error_log('item_detail.php business error: ' . $e->getMessage());
+    writePublicErrorLog($e, 'item_detail_business');
 
     // ユーザーには例外のメッセージ（「商品が見つかりません。」）をそのまま表示
     redirectWithError($e->getMessage());
 
 } catch (\Throwable $e) {
     // 2. DB接続エラーやプログラムのバグなど「想定外」の致命的エラー
-    // 開発者用ログにはエラー内容とスタックトレースを記録
-    error_log('item_detail.php fatal error: ' . $e->getMessage());
-    error_log($e->getTraceAsString());
+    writePublicErrorLog($e, 'item_detail_fatal');
 
     // ユーザーには詳細（DB構造など）を見せず、安全な汎用メッセージを表示
     redirectWithError('処理中にエラーが発生しました。');

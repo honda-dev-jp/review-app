@@ -12,6 +12,7 @@ require_once __DIR__ . '/../app/security/csrf.php';
 require_once __DIR__ . '/../lib/sanitize.php';
 require_once __DIR__ . '/../lib/db.php';
 require_once __DIR__ . '/../lib/flash.php';
+require_once __DIR__ . '/../lib/exception_handler.php';
 require_once __DIR__ . '/../lib/utils.php';  //BASE_URLの読込み関数
 // 修正：utils.php が二重に require_once されていたため1行に統一（実害はないが冗長なため）
 require_once __DIR__ . '/../includes/header_nav.php';
@@ -37,13 +38,7 @@ try {
 
 } catch (Throwable $e) {
     // ここは「補助情報取得」なので、リダイレクトせずログだけ出して継続する
-    error_log(sprintf(
-        '[%s] %s in %s:%d',
-        get_class($e),
-        $e->getMessage(),
-        $e->getFile(),
-        $e->getLine(),
-    ));
+    writePublicErrorLog($e, 'mypage_icon_fetch');
     $icon = null;
 }
 ?>
