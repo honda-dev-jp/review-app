@@ -13,7 +13,22 @@ body{
 
 /* サイドバーの余白 */
 .admin-sidebar{
-  padding-top:1rem;
+  padding:0;
+}
+
+.admin-sidebar-toggle{
+  align-items:center;
+  justify-content:space-between;
+  padding:0.75rem 1rem;
+}
+
+.admin-sidebar-content{
+  padding:1rem;
+}
+
+.admin-sidebar .nav-link,
+.admin-sidebar .btn{
+  white-space:nowrap;
 }
 
 
@@ -22,6 +37,10 @@ body{
 
   .admin-sidebar{
     min-height:100vh;
+  }
+
+  .admin-sidebar-toggle{
+    display:none;
   }
 
 }
@@ -47,6 +66,15 @@ body{
 ===================================================== */
 
 @media (max-width:767.98px){
+
+  .admin-sidebar{
+    border-right:0 !important;
+    border-bottom:1px solid #dee2e6;
+  }
+
+  .admin-sidebar-content{
+    padding-top:0.25rem;
+  }
 
   /* テーブル文字サイズ */
   .table{
