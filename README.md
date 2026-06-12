@@ -56,19 +56,39 @@ https://portfolio.honda-dev.com/
 git clone https://github.com/honda-dev-jp/review-app.git
 cd review-app
 
-# 設定ファイルを作成
-cp config/env_example.php config/env.php
-cp config/database_example.php config/database.php
-
 # Dockerコンテナ起動
 docker compose up -d
 ```
 
-データベース接続情報は、ローカル環境に合わせて `config/database.php` を編集してください。
+### 設定ファイルについて
+
+実行時に使用する設定ファイルは、Web公開ディレクトリ配下には配置しません。
+
+ローカル環境では、Docker Compose の override 設定により、リポジトリ外の非公開ディレクトリをコンテナ内へ読み取り専用でマウントします。
+
+想定構成:
+
+```text
+review-app-private/
+└── portfolio/
+    ├── env.php
+    └── database.php
+```
+
+コンテナ内では以下のパスとして参照されます。
+
+```text
+/var/www/private_config/portfolio/env.php
+/var/www/private_config/portfolio/database.php
+```
+
+リポジトリ内の `config/env_example.php` / `config/database_example.php` は、設定ファイルのサンプルとしてのみ管理します。
 
 > ※ 本番用の認証情報・DB接続情報はリポジトリに含めていません。
 >
-> ※ DBスキーマおよび初期データはリポジトリに含めていません。動作確認用のデータ整備は、Laravel移植時に `php artisan migrate` / `db:seed` で対応予定です。
+> ※ `config/env.php` / `config/database.php` はWeb公開ディレクトリ配下に配置しません。
+>
+> ※ DBスキーマおよび初期データはリポジトリに含めていません。Laravel移植版では migration / seeder による管理へ移行予定です。
 
 ---
 
@@ -214,10 +234,37 @@ admin/
 
 ---
 
-## テスト
+## テスト・確認
 
-### 現在実施済みのテスト
-管理者機能について、以下の観点で手動テストを実施しました。
+### 現在実施している確認
+
+現在は、`scripts/check.sh` によりローカル環境で以下を確認しています。
+
+```bash
+./scripts/check.sh
+```
+
+主な確認内容:
+
+- PHP構文チェック
+- php-cs-fixer dry-run によるコードスタイル確認
+- HTTP readiness check
+- 公開してよいURLの到達確認
+- 公開してはいけないURLの拒否確認
+
+  - `/.env`
+  - `/.git/config`
+  - `/config/env.php`
+  - `/config/database.php`
+  - `/README.md`
+  - `/AGENTS.md`
+  - `/docs/`
+  - `/lib/db.php`
+  - `/admin/lib/db.php`
+
+### 手動テスト
+
+管理者機能について、以下の観点で手動テストを実施済みです。
 
 - 権限制御（未ログイン / 一般ユーザーは管理画面アクセス不可）
 - 一覧表示・ページネーション
@@ -227,25 +274,31 @@ admin/
 - バリデーションエラー（入力保持・メッセージ表示）
 - 例外・エラー系（500画面遷移）
 
-### 今後追加予定の自動テスト
-- バリデーションルールの単体テスト
-- 管理者機能の Controller / Validator 周辺のテスト
-- PHPUnit 導入による継続的なテスト実行
+### 今後のテスト方針
+
+現時点では `scripts/check.sh` と手動確認を中心に運用しています。
+
+今後、必要に応じて PHPUnit 等による自動テスト導入を検討します。
 
 ---
 
 ## 公開ポリシー
 
-- 機密情報（`env.php` / `database.php`）は `.gitignore` で除外
-- 公開用は `env_example.php` / `database_example.php` のみ
+- 本番用の認証情報・DB接続情報はリポジトリに含めない
+- 実行時の設定ファイルはWeb公開ディレクトリ外の `private_config/portfolio/` 配下に配置する
+- リポジトリ内では `config/env_example.php` / `config/database_example.php` のみ管理する
+- `config/env.php` / `config/database.php` はWeb公開ディレクトリ配下に配置しない
 - 管理者アカウントの認証情報は非公開
 - 実運用を想定したログ管理・アクセス制御を実装
+- XServer側のアクセス制限と `.htaccess` により、探索系アクセスへの対策を継続する
 
 ---
 
 ## 今後の課題
 
-- PHPUnit による自動テスト導入（バリデーションルール / 管理者機能）
+- README / 運用ドキュメントの継続更新
+- 設定読み込み失敗時のエラーハンドリング方針整理
+- 必要に応じた PHPUnit 等の自動テスト導入検討
 - レビュー管理 / ユーザー管理の管理者画面追加
 - 共通バリデーションと画面固有バリデーションの分離（`/lib/validation/` と `/app/validators/`）
 - カテゴリー機能の実装
