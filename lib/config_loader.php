@@ -39,18 +39,18 @@ function loadPrivateConfig(string $filename): array
      * Docker LAMP想定:
      * /var/www/
      * ├── html/              ← アプリ本体
-     * └── private_config/    ← 設定ファイル
+     * └── private_config/portfolio/    ← 設定ファイル
      */
-    $candidates[] = dirname(__DIR__, 2) . '/private_config/' . $filename;
+    $candidates[] = dirname(__DIR__, 2) . '/private_config/portfolio/' . $filename;
 
     /*
      * XServer想定:
      * ドメイン用ディレクトリ/
-     * ├── private_config/    ← 設定ファイル
+     * ├── private_config/portfolio/    ← 設定ファイル
      * └── public_html/
      *     └── 公開ディレクトリ/ ← アプリ本体
      */
-    $candidates[] = dirname(__DIR__, 3) . '/private_config/' . $filename;
+    $candidates[] = dirname(__DIR__, 3) . '/private_config/portfolio/' . $filename;
 
     foreach ($candidates as $path) {
         if (is_readable($path)) {
