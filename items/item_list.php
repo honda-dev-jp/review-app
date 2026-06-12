@@ -10,6 +10,9 @@ declare(strict_types=1);
  *   パストラバーサルの可能性があった → basename() + sanitize() の二重防御に統一
  */
 
+require_once __DIR__ . '/../lib/config_loader.php'; // env.php の読込み関数を提供するファイル
+loadPrivateEnvConfig(); // env.php の読込み
+
 require_once __DIR__ . '/../app/security/session.php';
 
 // セッションを安全に開始
