@@ -1,6 +1,8 @@
 # 設定ファイルを隠す
 /config/env.php
 /config/database.php
+/private_config/
+private_config/
 /.vscode
 
 # テストフォルダを隠す
