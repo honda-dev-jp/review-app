@@ -1,9 +1,15 @@
 # 0. www を portfolio.honda-dev.com に統一リダイレクト
 #    ※ www.honda-dev.com へのアクセスが本アプリに到達するため追加
 #    ※ 2026/05/17 POST /で500エラーが発生したため対処
+#    ※ クエリ文字列は引き継がず破棄する
 RewriteEngine On
-RewriteCond %{HTTP_HOST} ^www\.honda-dev\.com [NC]
-RewriteRule ^ https://portfolio.honda-dev.com%{REQUEST_URI} [R=301,L]
+RewriteCond %{HTTP_HOST} ^www\.honda-dev\.com$ [NC]
+RewriteRule ^(.*)$ https://portfolio.honda-dev.com/$1 [R=301,L,QSD]
+
+# 0-1. WordPress REST API 探索クエリを拒否
+#      ※ WordPressは使用していないため rest_route は不要
+RewriteCond %{QUERY_STRING} (^|&)rest_route= [NC]
+RewriteRule ^ - [R=404,L]
 
 # 既存の設定：HTTPSへの転送
 RewriteCond %{HTTPS} off
