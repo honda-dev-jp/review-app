@@ -219,6 +219,7 @@ admin/
 |------|---------|
 | エラー画面 | 本番では詳細非表示、500.php へ集約 |
 | 不正アクセス対策 | XServer側のアクセス制限と `.htaccess` による探索系アクセスの遮断 |
+| クリックジャッキング対策 | `.htaccess` で CSP `frame-ancestors 'none'` と `X-Frame-Options: DENY` を設定し、iframe / frame 等への埋め込みを禁止 |
 | ログ監視 | アクセスログ解析を継続実施 |
 
 ---

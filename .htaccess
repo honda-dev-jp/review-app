@@ -18,6 +18,25 @@ RewriteCond %{HTTP_HOST} !^localhost [NC]
 RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
 
 # ----------------------------------------------------------------------
+# クリックジャッキング対策
+# ----------------------------------------------------------------------
+# iframe / frame 等への埋め込みを禁止する
+#
+# Content-Security-Policy:
+#   frame-ancestors 'none' により、すべてのサイトからの埋め込みを禁止
+#
+# X-Frame-Options:
+#   DENY により、旧来ブラウザ等も含めフレーム内表示を禁止
+#
+# ※ Apache mod_headers が有効な環境でのみ適用する
+# ※ XServerでの利用可否は公式マニュアルに明記を確認できていないため、
+#    ローカル検証後、本番のResponse Headersでも実際の付与を確認する
+<IfModule mod_headers.c>
+    Header always set Content-Security-Policy "frame-ancestors 'none'"
+    Header always set X-Frame-Options "DENY"
+</IfModule>
+
+# ----------------------------------------------------------------------
 # セキュリティ強化設定
 # ----------------------------------------------------------------------
 
