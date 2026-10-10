@@ -1,122 +1,108 @@
-# 0. www を portfolio.honda-dev.com に統一リダイレクト
-#    ※ www.honda-dev.com へのアクセスが本アプリに到達するため追加
-#    ※ 2026/05/17 POST /で500エラーが発生したため対処
-#    ※ クエリ文字列は引き継がず破棄する
-RewriteEngine On
-RewriteCond %{HTTP_HOST} ^www\.honda-dev\.com$ [NC]
-RewriteRule ^(.*)$ https://portfolio.honda-dev.com/$1 [R=301,L,QSD]
+# ----------------------------------------------------------------------
+# portfolio.honda-dev.com 用 .htaccess
+#
+# honda-dev.com/public_html/.htaccess に共通防御がある本番環境でも、
+# ローカル環境ではこのファイル単体で動作するため、
+# portfolio 自身の安全性に必要なルールは重複して保持する。
+#
+# www.honda-dev.com → portfolio.honda-dev.com の正規化や、
+# ドメイン全体のIP拒否などは親 .htaccess で管理する。
+# ----------------------------------------------------------------------
 
-# 0-1. WordPress REST API 探索クエリを拒否
-#      ※ WordPressは使用していないため rest_route は不要
+RewriteEngine On
+
+# 1. WordPress REST API 探索クエリを拒否
+#    WordPressは使用していないため rest_route は不要
 RewriteCond %{QUERY_STRING} (^|&)rest_route= [NC]
 RewriteRule ^ - [R=404,L]
 
-# 既存の設定：HTTPSへの転送
+# 2. HTTPSへの転送
+#    localhost（Docker等のローカル環境）はHTTPSリダイレクト対象外
 RewriteCond %{HTTPS} off
-# localhost（Docker等のローカル環境）はHTTPSリダイレクト対象外
 RewriteCond %{HTTP_HOST} !^localhost [NC]
 RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
 
 # ----------------------------------------------------------------------
 # クリックジャッキング対策
 # ----------------------------------------------------------------------
-# iframe / frame 等への埋め込みを禁止する
-#
-# Content-Security-Policy:
-#   frame-ancestors 'none' により、すべてのサイトからの埋め込みを禁止
-#
-# X-Frame-Options:
-#   DENY により、旧来ブラウザ等も含めフレーム内表示を禁止
-#
-# ※ Apache mod_headers が有効な環境でのみ適用する
-# ※ XServerでの利用可否は公式マニュアルに明記を確認できていないため、
-#    ローカル検証後、本番のResponse Headersでも実際の付与を確認する
+
 <IfModule mod_headers.c>
     Header always set Content-Security-Policy "frame-ancestors 'none'"
     Header always set X-Frame-Options "DENY"
 </IfModule>
 
 # ----------------------------------------------------------------------
-# セキュリティ強化設定
+# 共通セキュリティ対策
 # ----------------------------------------------------------------------
 
-# 1. WordPressを狙ったボットなどのアクセスを拒否
-#    wp-*.php / xmlrpc.php へのアクセスを全て遮断
-#    ※当サイトはWordPressを使用していないため全件拒否
+# 3. WordPressを狙ったボットなどのアクセスを拒否
+#    当サイトはWordPressを使用していないため全件拒否
 <FilesMatch "^(wp-.*|xmlrpc\.php)">
     Order allow,deny
     Deny from all
 </FilesMatch>
 
-# 2. ディレクトリの中身（ファイル一覧）をブラウザで見せない
+# 4. ディレクトリ一覧を無効化
 Options -Indexes
 
-# 3. .htaccess自身や基本的な設定ファイルへのアクセスを禁止
-#    対象：.htaccess / .htpasswd / .env（拡張子なし）
+# 5. .htaccess / .htpasswd / .env へのアクセスを禁止
 <FilesMatch "^\.(ht|env)$">
     Order allow,deny
     Deny from all
 </FilesMatch>
 
-# 4. .envバリエーション全般を拒否
-#    対象：.env.local / .env.production / .env.bak / .env.backup 等
-#    ※ 4月のログで130件超の探索を確認したため追加
+# 6. .envバリエーション全般を拒否
 <FilesMatch "^\.env">
     Order allow,deny
     Deny from all
 </FilesMatch>
 
-# 5. phpinfo系ファイルへのアクセスを拒否
-#    対象：phpinfo.php / info.php / php-info.php / debug.php
-#    ※ PHPバージョン・サーバー設定情報の漏洩を防ぐ
+# 7. phpinfo系ファイルへのアクセスを拒否
 <FilesMatch "^(phpinfo|info|php-info|debug)\.php$">
     Order allow,deny
     Deny from all
 </FilesMatch>
 
-# 6. .gitディレクトリへのアクセスを拒否（共有ホスティング互換）
-#    ※ RedirectMatchはDirectoryMatchより共有ホスティングでの互換性が高い
+# 8. .gitディレクトリへのアクセスを拒否
+#    ローカル環境では親 .htaccess が存在しないため、このルールを保持する
 RedirectMatch 404 /\.git
 
-# 7. /administrator/ 系パスを拒否
-#    対象：Joomla / SilverStripe 等のCMSを狙ったスキャン
-#    ※ 2026/04/12 ログで 185.5.249.66 からの探索を確認したため追加
+# 9. /administrator/ 系パスを拒否
 RedirectMatch 403 ^/administrator
 
-# 8. .env系ファイルへのアクセスを全パスで拒否
-#    対象：/admin/.env 等サブディレクトリ配下の.envも含む
-#    ※ FilesMatchはルート直下のみ有効なケースがあるためRedirectMatchで補完
-#    ※ 2026/04/25 ログで 103.153.183.69 から /admin/.env への探索を確認したため追加
+# 10. .env系ファイルへのアクセスを全パスで拒否
 RedirectMatch 403 /\.env($|/)
 
-# 9. configディレクトリへの直接アクセスを拒否
-#    対象：/config/database.php 等
-#    ※ DB接続情報など設定ファイルの直接参照を防ぐ
+# ----------------------------------------------------------------------
+# portfolio.honda-dev.com 固有の公開制御
+# ----------------------------------------------------------------------
+
+# 11. configディレクトリへの直接アクセスを拒否
+#     対象：/config/database.php 等
 RedirectMatch 403 ^/config(/|$)
 
-# 10. 内部処理用ディレクトリへの直接アクセスを拒否
-#     PHP内部の require_once には影響しない。ブラウザからの直接URLアクセスのみ拒否する。
+# 12. 内部処理用ディレクトリへの直接アクセスを拒否
+#     PHP内部の require_once には影響しない
 RedirectMatch 403 ^/(?:app|includes|lib)(?:/|$)
 
-# 11. 管理画面配下の内部処理用ファイル・ディレクトリを拒否
-#     /admin/item_list.php 等の画面URL、/admin/css/、/admin/js/ は拒否しない。
+# 13. 管理画面配下の内部処理用ファイル・ディレクトリを拒否
+#     /admin/item_list.php 等の画面URL、/admin/css/、/admin/js/ は拒否しない
 RedirectMatch 403 ^/admin/(?:bootstrap\.php|controller|guards|lang|lib|model|validator|view)(?:/|$)
 
-# 12. 公開不要なドットファイル・ドットディレクトリを拒否
+# 14. 公開不要なドットファイル・ドットディレクトリを拒否
 #     対象：/.gitignore / .gitattributes / .php-cs-fixer.cache / .vscode/ / .github/ 等
 #     例外：/.well-known/ は証明書更新・外部検証用途で使われる可能性があるため許可
-#     ※ /.git/ は上の RedirectMatch 404 で処理するため除外
+#     /.git/ は上の RedirectMatch 404 で処理するため除外
 RedirectMatch 403 (^|/)\.(?!well-known(?:/|$)|git(?:/|$))[^/]+
 
-# 13. 公開不要なドキュメント・開発用ディレクトリを拒否
+# 15. 公開不要なドキュメント・開発用ディレクトリを拒否
 #     対象：/docs/ / README.md / AGENTS.md
 RedirectMatch 403 ^/docs(?:/|$)
 RedirectMatch 403 ^/(?:README|AGENTS)\.md$
 
-# 14. 依存関係・ビルド・整形ツール系の設定ファイルを拒否
-#     将来 composer/npm 等を追加した場合の直接参照を防ぐ
+# 16. 依存関係・ビルド・整形ツール系の設定ファイルを拒否
 RedirectMatch 403 ^/(?:composer\.(?:json|lock)|package(?:-lock)?\.json|yarn\.lock|pnpm-lock\.yaml)$
 
-# 15. バックアップ・SQLダンプ・ログ・一時ファイルを拒否
+# 17. バックアップ・SQLダンプ・ログ・一時ファイルを拒否
 #     対象例：*.bak / *.backup / *.old / *.orig / *.save / *.tmp / *.sql / *.log 等
 RedirectMatch 403 (?i)(^|/).*\.(?:bak|backup|old|orig|save|swp|swo|tmp|temp|sql|sqlite|db|log)$
