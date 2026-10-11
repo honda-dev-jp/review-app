@@ -1,6 +1,10 @@
 #!/bin/sh
 
-BASE_URL="${BASE_URL:-http://localhost}"
+# Run from any working directory. The script belongs to review-app/scripts/.
+PROJECT_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd -P) || exit 1
+LAMP_DIR=${LAMP_DIR:-"$PROJECT_ROOT/../docker-lab/lamp"}
+BASE_URL=${BASE_URL:-http://localhost}
+FIXER_IMAGE=ghcr.io/php-cs-fixer/php-cs-fixer:3.95.25-php8.4
 FAILURES=0
 
 pass() {
@@ -39,57 +43,102 @@ require_command() {
     return 1
 }
 
+# The same lint routine runs on the host or in the existing web container.
+# It intentionally never opens the two private config files.
+php_lint_script() {
+    cat <<'PHP_LINT'
+php_files=$(find . \
+    -path './vendor' -prune -o \
+    -type f \
+    -name '*.php' \
+    ! -path './config/env.php' \
+    ! -path './config/database.php' \
+    -print) || exit 1
+
+if [ -z "$php_files" ]; then
+    printf 'FAIL: no PHP files found\n'
+    exit 1
+fi
+
+printf '%s\n' "$php_files" | (
+    lint_failed=0
+
+    while IFS= read -r php_file; do
+        if syntax_output=$(php -l "$php_file" 2>&1); then
+            printf 'PASS: php -l %s\n' "$php_file"
+        else
+            printf 'FAIL: php syntax error: %s\n' "$php_file"
+            printf '%s\n' "$syntax_output"
+            lint_failed=1
+        fi
+    done
+
+    exit "$lint_failed"
+)
+PHP_LINT
+}
+
 check_php_syntax() {
     printf '\n== PHP syntax check ==\n'
 
-    if ! command_exists php; then
-        fail "php command not found; cannot run php -l"
+    if command_exists php; then
+        printf 'INFO: using host PHP\n'
+        if php_lint_script | (cd "$PROJECT_ROOT" && sh -s); then
+            pass 'PHP syntax check (host)'
+        else
+            fail 'PHP syntax check failed (host)'
+        fi
         return
     fi
 
-    found_php=0
-    php_file_list="${TMPDIR:-/tmp}/review-app-check-php-files-$$"
+    if ! command_exists docker; then
+        fail 'PHP is unavailable on host, and Docker command was not found'
+        return
+    fi
 
-    find . \
-        -path './vendor' -prune -o \
-        -type f \
-        -name '*.php' \
-        ! -path './config/env.php' \
-        ! -path './config/database.php' \
-        -print > "$php_file_list"
+    if [ ! -d "$LAMP_DIR" ]; then
+        fail 'PHP is unavailable on host, and LAMP_DIR does not exist'
+        return
+    fi
 
-    while IFS= read -r php_file; do
-        found_php=1
-
-        syntax_output=$(php -l "$php_file" 2>&1)
-
-        if [ "$?" -eq 0 ]; then
-            pass "php -l $php_file"
-        else
-            fail "php syntax error: $php_file"
-            printf '%s\n' "$syntax_output"
-        fi
-    done < "$php_file_list"
-
-    rm -f "$php_file_list"
-
-    if [ "$found_php" -eq 0 ]; then
-        fail "no PHP files found"
+    printf 'INFO: using Docker Compose web container\n'
+    if php_lint_script | (
+        cd "$LAMP_DIR" && docker compose exec -T web sh -c 'cd /var/www/html && exec sh -s'
+    ); then
+        pass 'PHP syntax check (Docker web)'
+    else
+        fail 'PHP syntax check failed or Docker web container is unavailable'
     fi
 }
 
 check_php_cs_fixer() {
     printf '\n== php-cs-fixer dry-run ==\n'
 
-    if ! command_exists php-cs-fixer; then
-        fail "php-cs-fixer command not found; install it in the global Composer environment"
+    if command_exists php-cs-fixer; then
+        printf 'INFO: using host PHP-CS-Fixer\n'
+        if (cd "$PROJECT_ROOT" && php-cs-fixer fix --dry-run --diff --using-cache=no --config=.php-cs-fixer.dist.php); then
+            pass 'php-cs-fixer dry-run (host)'
+        else
+            fail 'php-cs-fixer found formatting differences or failed (host)'
+        fi
         return
     fi
 
-    if php-cs-fixer fix --dry-run --diff --config=.php-cs-fixer.dist.php; then
-        pass "php-cs-fixer dry-run"
+    if ! command_exists docker; then
+        fail 'PHP-CS-Fixer is unavailable on host, and Docker command was not found'
+        return
+    fi
+
+    printf 'INFO: using PHP-CS-Fixer Docker image\n'
+    if docker run --rm \
+        --user "$(id -u):$(id -g)" \
+        --mount "type=bind,source=$PROJECT_ROOT,target=/app,readonly" \
+        -w /app \
+        "$FIXER_IMAGE" \
+        fix --dry-run --diff --using-cache=no --config=.php-cs-fixer.dist.php; then
+        pass 'php-cs-fixer dry-run (Docker)'
     else
-        fail "php-cs-fixer found formatting differences or failed"
+        fail 'php-cs-fixer found formatting differences or Docker run failed'
     fi
 }
 
@@ -131,7 +180,7 @@ check_http_ready() {
     printf '\n== HTTP readiness check ==\n'
 
     if ! command_exists curl; then
-        fail "curl command not found; cannot run HTTP checks"
+        fail 'curl command not found; cannot run HTTP checks'
         return 1
     fi
 
@@ -180,7 +229,9 @@ check_http_denied_urls() {
 main() {
     printf 'BASE_URL=%s\n' "$BASE_URL"
 
-    require_command php
+    if ! command_exists php; then
+        printf 'INFO: host PHP not found; Docker fallback will be used\n'
+    fi
     require_command curl
 
     check_php_syntax
