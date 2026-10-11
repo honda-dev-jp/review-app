@@ -263,6 +263,18 @@ admin/
   - `/lib/db.php`
   - `/admin/lib/db.php`
 
+### 実行環境について
+
+`scripts/check.sh` は、ホストに `php` / `php-cs-fixer` が存在する場合は従来のコマンドを使用し、存在しない場合は Docker を利用して検査します。
+
+Docker を利用する場合は、別リポジトリ `docker-lab/lamp` の Web コンテナが起動している必要があります。PHP 構文チェックは Web コンテナで、PHP-CS-Fixer は専用 Docker イメージで実行します。
+
+PHP-CS-Fixer は dry-run で実行し、Docker 利用時はアプリを読み取り専用でマウントします。検査によってソースコードを自動修正しません。
+
+LIFEBOOK（Ubuntu）では、ホストに PHP / Composer / PHP-CS-Fixer を追加せずに全項目 PASS することを確認済みです。また、Docker コマンドの実行失敗を模擬したテストでは、適切に非ゼロ終了することを確認しています。
+
+※ DELL 側の従来実行方式については、今回の変更後の実機確認は未実施です。
+
 ### 手動テスト
 
 管理者機能について、以下の観点で手動テストを実施済みです。

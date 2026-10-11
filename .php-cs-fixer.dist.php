@@ -19,8 +19,11 @@ return (new Config())
             // ->append([__DIR__.'/bin-entry-file'])
             // 💡 folders to exclude, if any
             // ->exclude([/* ... */])
-            // 💡 path patterns to exclude, if any
-            // ->notPath([/* ... */])
+            // 秘密情報を含む可能性がある設定ファイルを除外
+            ->notPath([
+                'config/env.php',
+                'config/database.php',
+            ])
             // 💡 extra configs
             // ->ignoreDotFiles(false) // true by default in v3, false in v4 or future mode
             // ->ignoreVCS(true) // true by default
